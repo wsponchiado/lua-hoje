@@ -10,11 +10,11 @@ Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://
 3. Reinicie o servidor Vite depois de alterar variáveis `VITE_*`.
 4. Confirme que o login anônimo está habilitado e que as tabelas `perfis` e `mensagens` mantêm RLS e as políticas criadas para `authenticated` no SQL do projeto.
 
-O chat cria uma sessão anônima do Supabase, associa o apelido ao `auth.uid()` em `perfis`, busca e grava mensagens em `mensagens`, limita o conteúdo a 500 caracteres e tenta usar Realtime. Se a tabela ainda não estiver na publicação Realtime, a tela atualiza por consulta periódica sem mudar a configuração do banco automaticamente.
+O chat cria uma sessão anônima do Supabase, associa o apelido ao `auth.uid()` em `perfis` e limita mensagens a 500 caracteres. Cada entrada marca o início da sessão: a pessoa vê apenas mensagens enviadas desde que entrou. O Realtime atualiza a conversa imediatamente quando disponível, com consulta periódica de segurança a cada 3 segundos. Ao sair, a tela local é limpa; quando o último participante sai, o SQL remove o histórico da conversa encerrada.
 
-### Liberação de apelido ao sair do chat
+### Saída do chat e limpeza da conversa
 
-Execute uma vez no **SQL Editor** do Supabase o arquivo `supabase/migrations/20261031_sair_do_chat.sql`. Ele cria a função segura `sair_do_chat()`, que grava “<apelido> saiu do chat” e remove somente o perfil da sessão que chamou a função, tudo na mesma transação. Depois disso, o apelido pode ser reutilizado. Se a função ainda não tiver sido instalada, o app mantém a sessão aberta e informa que o SQL precisa ser aplicado.
+Execute o arquivo `supabase/migrations/20261101_chat_temporario.sql` no SQL Editor do Supabase. Ele atualiza `sair_do_chat()` para liberar o apelido e apagar o histórico quando a sala ficar sem participantes. Cada pessoa vê apenas mensagens enviadas desde sua própria entrada.
 
 ### Aba Deixe sua opinião
 

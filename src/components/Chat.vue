@@ -16,6 +16,9 @@ const listaRef = ref(null)
 let canal = null
 let intervalo = null
 let authSubscription = null
+let sessaoDesde = null
+let atualizandoMensagens = false
+let versaoSessao = 0
 
 const podeEntrar = computed(() => apelidoEntrada.value.trim().length >= 2)
 
@@ -32,67 +35,91 @@ function mensagemErro(error) {
 }
 
 async function carregarMensagens() {
-  if (!usuario.value) return
-  const { data, error: erroConsulta } = await supabase
-    .from('mensagens')
-    .select('id, usuario_id, conteudo, criado_em')
-    .order('criado_em', { ascending: false })
-    .limit(100)
+  if (!usuario.value || !sessaoDesde || atualizandoMensagens) return
+  atualizandoMensagens = true
+  const versaoAtual = versaoSessao
 
-  if (erroConsulta) {
-    erro.value = mensagemErro(erroConsulta)
-    return
-  }
+  try {
+    const { data, error: erroConsulta } = await supabase
+      .from('mensagens')
+      .select('id, usuario_id, conteudo, criado_em')
+      .gte('criado_em', sessaoDesde)
+      .order('criado_em', { ascending: false })
+      .limit(100)
 
-  const ids = [...new Set((data || []).map(item => item.usuario_id))]
-  let perfis = []
-  if (ids.length) {
-    const { data: dadosPerfis, error: erroPerfis } = await supabase
-      .from('perfis')
-      .select('id, apelido')
-      .in('id', ids)
-    if (!erroPerfis) perfis = dadosPerfis || []
+    if (versaoAtual !== versaoSessao) return
+    if (erroConsulta) {
+      erro.value = mensagemErro(erroConsulta)
+      return
+    }
+
+    const ids = [...new Set((data || []).map(item => item.usuario_id))]
+    let perfis = []
+    if (ids.length) {
+      const { data: dadosPerfis, error: erroPerfis } = await supabase
+        .from('perfis')
+        .select('id, apelido')
+        .in('id', ids)
+      if (!erroPerfis) perfis = dadosPerfis || []
+    }
+    if (versaoAtual !== versaoSessao) return
+    const nomes = new Map(perfis.map(perfil => [perfil.id, perfil.apelido]))
+    mensagens.value = (data || []).map(item => ({
+      ...item,
+      apelido: nomes.get(item.usuario_id) || 'Visitante lunar'
+    })).reverse()
+    erro.value = ''
+    requestAnimationFrame(() => {
+      if (listaRef.value) listaRef.value.scrollTop = listaRef.value.scrollHeight
+    })
+  } finally {
+    atualizandoMensagens = false
   }
-  const nomes = new Map(perfis.map(perfil => [perfil.id, perfil.apelido]))
-  mensagens.value = (data || []).map(item => ({
-    ...item,
-    apelido: nomes.get(item.usuario_id) || 'Visitante lunar'
-  })).reverse()
-  erro.value = ''
-  requestAnimationFrame(() => {
-    if (listaRef.value) listaRef.value.scrollTop = listaRef.value.scrollHeight
-  })
 }
 
 function iniciarAtualizacoes() {
+  if (!usuario.value) return
+
   canal = supabase
-    .channel('lua-hoje-mensagens')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'mensagens' }, carregarMensagens)
+    .channel(`lua-hoje-mensagens-${usuario.value.id}`)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mensagens' }, () => {
+      void carregarMensagens()
+    })
     .subscribe((estado) => {
       if (estado === 'SUBSCRIBED') {
         status.value = 'Atualização em tempo real ativa'
-        if (intervalo) clearInterval(intervalo)
-        intervalo = null
       } else if (estado === 'CHANNEL_ERROR' || estado === 'TIMED_OUT' || estado === 'CLOSED') {
         status.value = 'Atualização periódica ativa'
-        if (!intervalo) intervalo = setInterval(carregarMensagens, 4000)
       }
     })
+
+  // Mantém uma consulta periódica mesmo quando o canal Realtime informa SUBSCRIBED.
+  // Isso cobre projetos em que o canal conecta, mas a tabela não está publicada no Realtime.
+  if (intervalo) clearInterval(intervalo)
+  intervalo = setInterval(() => {
+    if (usuario.value) void carregarMensagens()
+  }, 3000)
 }
 
 async function registrarEntrada(id, apelido) {
-  return supabase.from('mensagens').insert({
-    usuario_id: id,
-    conteudo: `${apelido} entrou no chat`
-  })
+  return supabase
+    .from('mensagens')
+    .insert({
+      usuario_id: id,
+      conteudo: `${apelido} entrou no chat`
+    })
+    .select('criado_em')
+    .single()
 }
-async function abrirSala(id, apelido) {
+async function abrirSala(id, apelido, inicioSessao) {
+  versaoSessao += 1
+  mensagens.value = []
   usuario.value = { id }
   apelidoAtual.value = apelido
+  sessaoDesde = inicioSessao
   await carregarMensagens()
   iniciarAtualizacoes()
 }
-
 async function entrarNoChat() {
   if (!podeEntrar.value || !supabase) return
   carregando.value = true
@@ -156,14 +183,14 @@ async function entrarNoChat() {
     }
   }
 
-  const { error: erroEntrada } = await registrarEntrada(user.id, apelido)
+  const { data: entrada, error: erroEntrada } = await registrarEntrada(user.id, apelido)
   if (erroEntrada) {
     erro.value = mensagemErro(erroEntrada)
     carregando.value = false
     return
   }
 
-  await abrirSala(user.id, apelido)
+  await abrirSala(user.id, apelido, entrada.criado_em)
   carregando.value = false
 }
 
@@ -206,6 +233,8 @@ async function sairDoChat() {
     return
   }
 
+  versaoSessao += 1
+  sessaoDesde = null
   if (canal) await supabase.removeChannel(canal)
   canal = null
   if (intervalo) clearInterval(intervalo)
@@ -233,9 +262,9 @@ onMounted(async () => {
       .eq('id', data.session.user.id)
       .maybeSingle()
     if (perfil) {
-      const { error: erroEntrada } = await registrarEntrada(perfil.id, perfil.apelido)
-      await abrirSala(perfil.id, perfil.apelido)
+      const { data: entrada, error: erroEntrada } = await registrarEntrada(perfil.id, perfil.apelido)
       if (erroEntrada) erro.value = mensagemErro(erroEntrada)
+      else await abrirSala(perfil.id, perfil.apelido, entrada.criado_em)
     }
   }
   const { data: listener } = supabase.auth.onAuthStateChange((_evento, sessao) => {
