@@ -287,8 +287,21 @@ async function enviarMensagem() {
   enviando.value = false
 }
 
+function dadosAvisoDeSala(mensagem) {
+  const correspondencia = mensagem.conteudo.match(/^(.+?) (entrou|saiu) do chat$/i)
+  return correspondencia ? { apelido: correspondencia[1], acao: correspondencia[2].toLowerCase() } : null
+}
+
 function ehAvisoDeSala(mensagem) {
-  return / (?:entrou|saiu) do chat$/i.test(mensagem.conteudo)
+  return Boolean(dadosAvisoDeSala(mensagem))
+}
+
+function corParticipante(identificador) {
+  const paleta = ['#c9b5ff', '#7fd4c0', '#f0bd78', '#85c5f4', '#ed9ec2', '#b8d987', '#f08f82', '#aaa0f4']
+  const texto = String(identificador || '')
+  let hash = 0
+  for (let indice = 0; indice < texto.length; indice += 1) hash = (hash * 31 + texto.charCodeAt(indice)) >>> 0
+  return paleta[hash % paleta.length]
 }
 
 function formatarHora(data) {
@@ -410,15 +423,33 @@ onUnmounted(() => {
           </div>
           <div v-if="mostrandoPessoas" class="chat-pessoas-lista">
             <strong>No chat agora</strong>
-            <p v-for="pessoa in pessoas" :key="pessoa.id"><span class="chat-online-ponto"></span>{{ pessoa.apelido }}<small v-if="pessoa.id === usuario.id">Você</small></p>
+            <p v-for="pessoa in pessoas" :key="pessoa.id"><span class="chat-online-ponto"></span><span :style="{ color: corParticipante(pessoa.id) }">{{ pessoa.apelido }}</span><small v-if="pessoa.id === usuario.id">Você</small></p>
             <p v-if="!pessoas.length">Ninguém conectado no momento.</p>
           </div>
           <div v-if="textoDigitando" class="chat-digitando" aria-live="polite">{{ textoDigitando }}</div>
           <div ref="listaRef" class="chat-mensagens" aria-live="polite" aria-label="Mensagens do chat">
             <p v-if="!mensagens.length" class="chat-vazio">O céu está quieto por enquanto. Comece a conversa 🌙</p>
-            <article v-for="mensagem in mensagens" :key="mensagem.id" class="chat-mensagem" :class="{ 'chat-mensagem-propria': mensagem.usuario_id === usuario.id, 'chat-aviso-sala': ehAvisoDeSala(mensagem) }">
-              <div v-if="!ehAvisoDeSala(mensagem)" class="chat-mensagem-meta"><strong>{{ mensagem.apelido }}</strong><time :datetime="mensagem.criado_em">{{ formatarHora(mensagem.criado_em) }}</time></div>
-              <p>{{ mensagem.conteudo }}</p>
+            <article
+              v-for="mensagem in mensagens"
+              :key="mensagem.id"
+              class="chat-mensagem"
+              :class="{
+                'chat-mensagem-propria': mensagem.usuario_id === usuario.id && !ehAvisoDeSala(mensagem),
+                'chat-aviso-sala': ehAvisoDeSala(mensagem)
+              }"
+            >
+              <div v-if="!ehAvisoDeSala(mensagem)" class="chat-mensagem-meta">
+                <strong :style="{ color: corParticipante(mensagem.usuario_id) }">{{ mensagem.apelido }}</strong>
+                <time :datetime="mensagem.criado_em">{{ formatarHora(mensagem.criado_em) }}</time>
+              </div>
+              <p v-if="dadosAvisoDeSala(mensagem)" class="chat-aviso-conteudo">
+                <strong :style="{ color: corParticipante(mensagem.usuario_id) }">
+                  {{ dadosAvisoDeSala(mensagem).apelido }}
+                </strong>
+                {{ dadosAvisoDeSala(mensagem).acao }} do chat
+                <time :datetime="mensagem.criado_em">{{ formatarHora(mensagem.criado_em) }}</time>
+              </p>
+              <p v-else>{{ mensagem.conteudo }}</p>
             </article>
           </div>
           <form class="chat-compositor" @submit.prevent="enviarMensagem">

@@ -829,7 +829,7 @@ footer > span {
 
 .chat-entrada > form { display:flex; flex-direction:column; align-items:stretch; }
 .chat-entrada > form .botao-principal { align-self:flex-start; }
-.chat-sala { min-height:0; }
+.chat-sala { position:relative; min-height:0; }
 /* Cabeçalho persistente e transição entre as três telas */
 .topbar { position:sticky; top:0; z-index:40; backdrop-filter:blur(16px); }
 .screen-enter-active, .screen-leave-active { transition:opacity .28s ease, transform .28s ease; }
@@ -851,7 +851,6 @@ footer > span {
 .chat-sortear { flex:none; padding:0 12px; border:1px solid rgba(181,161,255,.35); border-radius:7px; background:rgba(139,118,211,.13); color:#d8ceff; font:inherit; font-size:11px; cursor:pointer; }
 .chat-sortear:hover { background:rgba(139,118,211,.25); }
 .chat-apelido-limite { margin-top:6px; color:#77758a; font-size:10px; }
-.chat-sala { position:relative; }
 .chat-pessoas-botao { display:flex; align-items:center; gap:5px; padding:7px 9px; border:1px solid rgba(255,255,255,.14); border-radius:7px; background:rgba(255,255,255,.04); color:#d3cee5; font:inherit; font-size:11px; cursor:pointer; }
 .chat-pessoas-botao svg { width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; }
 .chat-pessoas-lista { position:absolute; top:42px; right:48px; z-index:3; width:min(245px, calc(100% - 20px)); padding:12px; border:1px solid rgba(255,255,255,.13); border-radius:9px; background:#171e34; box-shadow:0 12px 30px rgba(0,0,0,.4); }
@@ -963,7 +962,7 @@ footer > span {
 .indicadores-regiao button { width:7px; height:7px; padding:0; border:0; border-radius:50%; background:#646174; cursor:pointer; transition:width .2s,background .2s; }
 .indicadores-regiao button.ativo { width:22px; border-radius:5px; background:#ad9bd7; }
 .nota-zarc { margin-top:15px; }
-@media (max-width:650px) { .botoes-regiao { gap:6px; }.botoes-regiao button { padding:8px 11px; font-size:11px; }.carrossel-regioes-controles { grid-template-columns:28px minmax(0,1fr) 28px; gap:6px; }.seta-regiao { width:28px; height:28px; }.cartao-regiao { padding:16px 13px; }.meses-regiao { margin-left:104px; font-size:8px; }.linha-regional { grid-template-columns:90px minmax(0,1fr); gap:10px; }.linha-regional .tempo-cultura > span { font-size:15px; }.linha-regional .tempo-cultura strong { font-size:9px; }.tempo-trilho { gap:2px; } }
+@media (max-width:650px) { .botoes-regiao { gap:6px; }.botoes-regiao button { padding:8px 11px; font-size:11px; }.carrossel-regioes-controles { grid-template-columns:28px minmax(0,1fr) 28px; gap:6px; }.seta-regiao { width:28px; height:28px; }.cartao-regiao { padding:16px 13px; } }
 /* Legenda compacta dos calendários regionais e relação com o ciclo lunar */
 .mes-numero { display:none; }
 .linha-regional { grid-template-columns:34px minmax(0,1fr); gap:13px; }
@@ -1003,3 +1002,6 @@ footer > span {
   .ciclo-lunar-fases i { font-size:22px; }
 }
 
+
+.chat-aviso-conteudo strong { font-weight:600; }
+.chat-aviso-conteudo time { margin-left:4px; color:#77758a; font-size:9px; white-space:nowrap; }
