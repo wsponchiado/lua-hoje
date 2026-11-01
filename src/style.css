@@ -420,6 +420,7 @@ button {
 .tempo-cultura small { margin-top:3px; color:#88869b; font-size:9px; line-height:1.4; }
 .tempo-trilho { min-height:13px; align-items:center; }
 .tempo-faixa { height:9px; grid-row:1; border-radius:10px; opacity:.88; }
+.zarc-sem-periodo { grid-column:1 / -1; color:#8e8ba0; font-size:8px; line-height:1.3; }
 .faixa-verde { color:#82c9a0; background:#82c9a0; }.faixa-dourada { color:#d1b66f; background:#d1b66f; }.faixa-lilas { color:#a99acb; background:#a99acb; }.faixa-cafe { color:#bd9279; background:#bd9279; }.faixa-azul { color:#83aebe; background:#83aebe; }
 .tempo-nota { margin-top:18px; color:#aaa7bc; font-size:10px; line-height:1.7; }
 .link-zarc { display:inline-flex; gap:8px; margin-top:12px; color:#c5b4ff; font-size:11px; }
@@ -946,6 +947,10 @@ footer > span {
 .cartao-regiao-topo p { margin-top:5px; color:#8f8c9f; font-size:10px; letter-spacing:.04em; }
 .icone-regiao { font-size:30px; opacity:.82; }
 .resumo-regiao { min-height:38px; margin:15px 0 16px; color:#b3b0c2; font-size:12px; line-height:1.7; }
+.culturas-destaque { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:0 0 16px; }
+.culturas-destaque strong { width:100%; margin-bottom:2px; color:#aaa7bc; font-size:10px; font-weight:600; }
+.culturas-destaque span { padding:5px 9px; border:1px solid rgba(255,255,255,.1); border-radius:999px; color:#c6c2d2; font-size:10px; }
+.rotulo-calendario { margin:0 0 9px; color:#858297; font-size:10px; }
 .meses-regiao { margin:0 0 8px 150px; }
 .linha-regional { grid-template-columns:135px minmax(0,1fr); gap:15px; min-height:42px; }
 .linha-regional .tempo-cultura > span { font-size:17px; }
@@ -959,3 +964,42 @@ footer > span {
 .indicadores-regiao button.ativo { width:22px; border-radius:5px; background:#ad9bd7; }
 .nota-zarc { margin-top:15px; }
 @media (max-width:650px) { .botoes-regiao { gap:6px; }.botoes-regiao button { padding:8px 11px; font-size:11px; }.carrossel-regioes-controles { grid-template-columns:28px minmax(0,1fr) 28px; gap:6px; }.seta-regiao { width:28px; height:28px; }.cartao-regiao { padding:16px 13px; }.meses-regiao { margin-left:104px; font-size:8px; }.linha-regional { grid-template-columns:90px minmax(0,1fr); gap:10px; }.linha-regional .tempo-cultura > span { font-size:15px; }.linha-regional .tempo-cultura strong { font-size:9px; }.tempo-trilho { gap:2px; } }
+/* Legenda compacta dos calendários regionais e relação com o ciclo lunar */
+.mes-numero { display:none; }
+.linha-regional { grid-template-columns:34px minmax(0,1fr); gap:13px; }
+.linha-regional .cultura-icone { justify-content:center; }
+.linha-regional .cultura-icone > span { font-size:20px; line-height:1; }
+.meses-regiao { margin-left:49px; }
+.legenda-culturas { display:flex; flex-direction:column; align-items:stretch; gap:10px; margin:15px 0 2px 49px; padding-top:12px; border-top:1px solid rgba(255,255,255,.06); }
+.legenda-culturas > span { display:flex; width:100%; align-items:flex-start; gap:6px; color:#a9a6ba; font-size:10px; line-height:1.5; }
+.legenda-culturas > span > span { max-width: min(100%, 360px); }
+.legenda-culturas strong { color:#e2deec; font-weight:600; }
+.legenda-culturas small { display:block; margin-top:3px; color:#858297; font-size:9px; }
+.legenda-amostra { flex:none; width:18px; height:4px; margin-top:6px; border-radius:5px; }
+.legenda-culturas i { font-size:14px; font-style:normal; }
+.ciclo-lunar-agricola { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(230px,.8fr); gap:26px; align-items:center; padding:23px 26px; border:1px solid rgba(255,255,255,.09); border-radius:14px; background:linear-gradient(135deg,rgba(21,26,46,.88),rgba(14,19,34,.9)); }
+.ciclo-lunar-texto h3 { margin:8px 0 10px; color:#eeeaf7; font:600 21px 'Playfair Display',serif; }
+.ciclo-lunar-texto p { margin-top:8px; color:#b3b0c2; font-size:11px; line-height:1.75; }
+.ciclo-lunar-fases { display:flex; align-items:center; justify-content:space-between; gap:7px; padding:16px; border:1px solid rgba(181,161,255,.12); border-radius:11px; background:rgba(8,12,25,.35); }
+.ciclo-lunar-fases > span { display:grid; justify-items:center; gap:6px; }
+.ciclo-lunar-fases i { color:#c8b7ff; font-size:25px; font-style:normal; }
+.ciclo-lunar-fases small { color:#aaa7bc; font-size:9px; }
+.ciclo-lunar-fases b { color:#69647d; font-size:11px; font-weight:400; }
+.fontes-lunares { display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:10px; }
+.fontes-lunares a { color:#bca9ed; font-size:10px; }
+.fontes-lunares a:hover { color:#e2d8fb; }
+@media (max-width:650px) {
+  .meses-regiao { margin-left:43px; gap:1px; font-size:9px; }
+  .mes-abreviado { display:none; }
+  .mes-numero { display:inline; font-variant-numeric:tabular-nums; }
+  .linha-regional { grid-template-columns:32px minmax(0,1fr); gap:10px; }
+  .linha-regional .cultura-icone > span { font-size:18px; }
+  .legenda-culturas { gap:9px; margin-left:42px; }
+  .legenda-culturas > span { font-size:9px; }
+  .culturas-destaque { gap:6px; }
+  .culturas-destaque span { padding:4px 7px; font-size:9px; }
+  .ciclo-lunar-agricola { grid-template-columns:1fr; gap:16px; padding:19px 16px; }
+  .ciclo-lunar-fases { gap:5px; padding:12px 8px; }
+  .ciclo-lunar-fases i { font-size:22px; }
+}
+

@@ -42,31 +42,60 @@ const iluminacao = computed(() => {
 })
 
 const mesesAgricolas = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+function intervalosDeMeses(meses = []) {
+  const ordenados = [...new Set(meses)].sort((a, b) => a - b)
+  const intervalos = []
+  for (const mes of ordenados) {
+    const atual = intervalos.at(-1)
+    if (atual && mes === atual.fim + 1) atual.fim = mes
+    else intervalos.push({ inicio: mes, fim: mes })
+  }
+  return intervalos
+}
+const todosMeses = Array.from({ length: 12 }, (_, indice) => indice + 1)
 const regioesAgricolas = [
-  { id: 'norte', nome: 'Norte', estados: 'AC · AP · AM · PA · RO · RR · TO', resumo: 'Calendários diversos entre áreas de chuva mais prolongada e sistemas de transição.', culturas: [
-    { nome: 'Soja', icone: '🫘', inicio: 9, fim: 11, cor: 'faixa-verde' },
-    { nome: 'Milho', icone: '🌽', inicio: 0, fim: 3, cor: 'faixa-dourada' },
-    { nome: 'Mandioca', icone: '🌱', inicio: 0, fim: 3, cor: 'faixa-azul' }
+  { id: 'norte', nome: 'Norte', estados: 'AC · AP · AM · PA · RO · RR · TO', resumo: 'Cada calendário usa o principal município produtor de cada cultivo na região.', destaques: ['Soja', 'Cacau', 'Açaí', 'Mandioca', 'Milho'], culturas: [
+    { nome: 'Soja', icone: '🌿', municipio: 'Paragominas · PA', meses: [1, 2, 11, 12], detalhe: '100–140 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-verde' },
+    { nome: 'Cacau · implantação', icone: '🍫', municipio: 'Medicilândia · PA', meses: todosMeses, detalhe: 'Cultura perene; entrada em produção varia por sistema · ZARC perene', cor: 'faixa-cafe' },
+    { nome: 'Açaí · implantação', icone: '🫐', municipio: 'Igarapé-Miri · PA', meses: todosMeses, detalhe: 'Cultura perene; primeira frutificação pode ocorrer por volta do 3º ano · ZARC perene', cor: 'faixa-azul' },
+    { nome: 'Mandioca', icone: '🌱', municipio: 'Acará · PA', meses: [1, 2, 3, 4, 5, 6, 7, 8, 9, 12], detalhe: 'Ciclo de 6 a 36 meses, conforme cultivar e uso · ZARC perene', cor: 'faixa-dourada' },
+    { nome: 'Milho · 1ª safra', icone: '🌽', municipio: 'Campos Lindos · TO', meses: [11, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Milho · 2ª safra', icone: '🌽', municipio: 'Campos Lindos · TO', meses: [1, 2, 3, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-lilas' }
   ] },
-  { id: 'nordeste', nome: 'Nordeste', estados: 'AL · BA · CE · MA · PB · PE · PI · RN · SE', resumo: 'O regime de chuvas varia bastante do litoral ao semiárido; o calendário acompanha cada zona.', culturas: [
-    { nome: 'Feijão-caupi', icone: '🫘', inicio: 0, fim: 4, cor: 'faixa-verde' },
-    { nome: 'Milho', icone: '🌽', inicio: 0, fim: 4, cor: 'faixa-dourada' },
-    { nome: 'Sorgo', icone: '🌾', inicio: 2, fim: 5, cor: 'faixa-lilas' }
+  { id: 'nordeste', nome: 'Nordeste', estados: 'AL · BA · CE · MA · PB · PE · PI · RN · SE', resumo: 'As janelas refletem municípios de maior produção para cada cultura.', destaques: ['Soja', 'Cana-de-açúcar', 'Milho', 'Algodão', 'Cacau'], culturas: [
+    { nome: 'Soja', icone: '🌿', municipio: 'São Desidério · BA', meses: [11, 12], detalhe: '100–140 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-verde' },
+    { nome: 'Cana-de-açúcar', icone: '🎋', municipio: 'Coruripe · AL', meses: [1, 2, 3, 6, 7, 8, 9, 10, 11, 12], detalhe: 'Cana de ano: 12 meses; cana de ano e meio: 18 meses · ZARC não separa os sistemas', cor: 'faixa-cafe' },
+    { nome: 'Milho · 1ª safra', icone: '🌽', municipio: 'Balsas · MA', meses: [1, 2, 11, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Milho · 2ª safra', icone: '🌽', municipio: 'Balsas · MA', meses: [1, 2], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-lilas' },
+    { nome: 'Algodão', icone: '☁️', municipio: 'São Desidério · BA', meses: [1, 11, 12], detalhe: 'Ciclo anual; duração depende da cultivar e do manejo · ZARC 2026/27', cor: 'faixa-azul' },
+    { nome: 'Cacau · implantação', icone: '🍫', municipio: 'Ilhéus · BA', meses: todosMeses, detalhe: 'Cultura perene; entrada em produção varia por sistema · ZARC perene', cor: 'faixa-verde' }
   ] },
-  { id: 'centro-oeste', nome: 'Centro-Oeste', estados: 'DF · GO · MS · MT', resumo: 'Em muitas áreas, a estação chuvosa organiza a safra de verão e a sucessão de culturas.', culturas: [
-    { nome: 'Soja', icone: '🫘', inicio: 8, fim: 11, cor: 'faixa-verde' },
-    { nome: 'Milho · segunda safra', icone: '🌽', inicio: 0, fim: 3, cor: 'faixa-dourada' },
-    { nome: 'Algodão', icone: '☁️', inicio: 11, fim: 12, cor: 'faixa-cafe' }
+  { id: 'centro-oeste', nome: 'Centro-Oeste', estados: 'DF · GO · MS · MT', resumo: 'Polos de produção e janelas ZARC de cada cultura, com as safras separadas.', destaques: ['Soja', 'Milho', 'Algodão', 'Cana-de-açúcar', 'Feijão'], culturas: [
+    { nome: 'Soja', icone: '🌿', municipio: 'Sorriso · MT', meses: [1, 10, 11, 12], detalhe: '100–140 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-verde' },
+    { nome: 'Milho · 1ª safra', icone: '🌽', municipio: 'Sorriso · MT', meses: [10, 11, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Milho · 2ª safra', icone: '🌽', municipio: 'Sorriso · MT', meses: [1, 2], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-lilas' },
+    { nome: 'Algodão', icone: '☁️', municipio: 'Sapezal · MT', meses: [1, 2, 12], detalhe: 'Ciclo anual; duração depende da cultivar e do manejo · ZARC 2026/27', cor: 'faixa-azul' },
+    { nome: 'Cana-de-açúcar', icone: '🎋', municipio: 'Nova Alvorada do Sul · MS', meses: [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12], detalhe: 'Cana de ano: 12 meses; cana de ano e meio: 18 meses · ZARC não separa os sistemas', cor: 'faixa-cafe' },
+    { nome: 'Feijão · 1ª safra', icone: '🫘', municipio: 'Nova Ubiratã · MT', meses: [1, 2, 3, 4, 5, 6, 9, 10, 11, 12], detalhe: '65–95 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Feijão · 2ª safra', icone: '🫘', municipio: 'Nova Ubiratã · MT', meses: [1, 2], detalhe: '65–95 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-lilas' }
   ] },
-  { id: 'sudeste', nome: 'Sudeste', estados: 'ES · MG · RJ · SP', resumo: 'Chuva, altitude e sistemas produtivos criam calendários diferentes até dentro de um mesmo estado.', culturas: [
-    { nome: 'Milho · verão', icone: '🌽', inicio: 8, fim: 11, cor: 'faixa-dourada' },
-    { nome: 'Café · implantação', icone: '☕', inicio: 9, fim: 3, cor: 'faixa-cafe' },
-    { nome: 'Feijão', icone: '🫘', inicio: 0, fim: 3, cor: 'faixa-verde' }
+  { id: 'sudeste', nome: 'Sudeste', estados: 'ES · MG · RJ · SP', resumo: 'O município de maior produção foi selecionado separadamente para cada cultivo.', destaques: ['Cana-de-açúcar', 'Café', 'Laranja', 'Soja', 'Milho'], culturas: [
+    { nome: 'Cana-de-açúcar', icone: '🎋', municipio: 'Uberaba · MG', meses: [2, 3, 4, 5, 6, 9, 10, 11, 12], detalhe: 'Cana de ano: 12 meses; cana de ano e meio: 18 meses · ZARC não separa os sistemas', cor: 'faixa-verde' },
+    { nome: 'Café arábica · implantação', icone: '☕', municipio: 'Patrocínio · MG', meses: [8, 9, 10, 11, 12], detalhe: 'Implantação perene · ZARC (risco 20%, solos e grupos agregados)', cor: 'faixa-cafe' },
+    { nome: 'Café canéfora (conilon) · implantação', icone: '☕', municipio: 'Rio Bananal · ES', meses: [10, 11, 12, 1, 2, 3], detalhe: 'Implantação no período chuvoso, outubro a março · referência técnica do Incaper', cor: 'faixa-lilas' },
+    { nome: 'Laranja · implantação', icone: '🍊', municipio: 'Casa Branca · SP', meses: [1, 2, 3, 10, 11, 12], detalhe: 'Cultura perene; implantação do pomar · ZARC perene', cor: 'faixa-azul' },
+    { nome: 'Soja', icone: '🌿', municipio: 'Unaí · MG', meses: [1, 10, 11, 12], detalhe: '100–140 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Milho · 1ª safra', icone: '🌽', municipio: 'Unaí · MG', meses: [11, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Milho · 2ª safra', icone: '🌽', municipio: 'Unaí · MG', meses: [1, 2, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-lilas' }
   ] },
-  { id: 'sul', nome: 'Sul', estados: 'PR · RS · SC', resumo: 'Safras de verão e culturas de inverno se alternam conforme clima, solo e planejamento local.', culturas: [
-    { nome: 'Soja', icone: '🫘', inicio: 8, fim: 11, cor: 'faixa-verde' },
-    { nome: 'Milho · verão', icone: '🌽', inicio: 7, fim: 10, cor: 'faixa-dourada' },
-    { nome: 'Trigo', icone: '🌾', inicio: 4, fim: 7, cor: 'faixa-lilas' }
+  { id: 'sul', nome: 'Sul', estados: 'PR · RS · SC', resumo: 'Municípios líderes por produção e calendários ZARC por safra.', destaques: ['Soja', 'Milho', 'Arroz', 'Tabaco', 'Trigo'], culturas: [
+    { nome: 'Soja', icone: '🌿', municipio: 'Tupanciretã · RS', meses: [1, 10, 11, 12], detalhe: '100–140 dias, conforme cultivar · ZARC 2026/27', cor: 'faixa-verde' },
+    { nome: 'Milho · 1ª safra', icone: '🌽', municipio: 'Toledo · PR', meses: [8, 9, 10, 11, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-dourada' },
+    { nome: 'Milho · 2ª safra', icone: '🌽', municipio: 'Toledo · PR', meses: [1, 2, 3, 12], detalhe: '100–145 dias, conforme grupo de maturidade · ZARC 2026/27', cor: 'faixa-lilas' },
+    { nome: 'Arroz', icone: '🍚', municipio: 'Uruguaiana · RS', meses: [9, 10, 11, 12], detalhe: '100–150 dias, conforme cultivar e região · ZARC 2026/27', cor: 'faixa-azul' },
+    { nome: 'Tabaco Virgínia · transplante', icone: '🍃', municipio: 'Canguçu · RS', meses: [5, 6, 7, 8, 9, 10], detalhe: 'Calendário Foniagro 2026/27 para o Centro-Sul do RS: 1º de maio a 15 de outubro', cor: 'faixa-cafe' },
+    { nome: 'Trigo', icone: '🌾', municipio: 'São Luiz Gonzaga · RS', meses: [5, 6, 7], detalhe: 'Cerca de 110–123 dias, conforme cultivar · ZARC 2025/26', cor: 'faixa-lilas' },
+    { nome: 'Trigo · duplo propósito', icone: '🌾', municipio: 'São Luiz Gonzaga · RS', meses: [4, 5], detalhe: 'Duplo propósito; duração varia por cultivar · ZARC 2025/26', cor: 'faixa-verde' }
   ] }
 ]
 const regiaoAtiva = ref(0)
@@ -129,32 +158,52 @@ function iniciarContagemVisitantes() {
     })
 }
 
+function mensagemErroOpiniao(error) {
+  if (['42P01', 'PGRST205'].includes(error?.code)) {
+    return 'A tabela de opiniões ainda não existe no Supabase. Execute a migração supabase/migrations/20261031_opinioes.sql.'
+  }
+  if (['PGRST204', '42703'].includes(error?.code)) {
+    return 'O Supabase ainda não tem a coluna de publicação das opiniões. Execute supabase/migrations/20261101_opinioes_historico_publico.sql no SQL Editor.'
+  }
+  if (error?.code === '42501') {
+    return 'O Supabase bloqueou esta ação pelas políticas da tabela opinioes. Confira as políticas da migração de histórico público.'
+  }
+  return 'Não foi possível conectar ao Supabase para acessar as opiniões. Verifique a conexão e tente novamente.'
+}
+
 async function carregarHistorico(limpar = false) {
   if (!supabaseConfigured || !supabase) {
     historicoErro.value = 'A conexão com o Supabase ainda não está configurada.'
     return
   }
   if (carregandoHistorico.value || (!historicoTemMais.value && !limpar)) return
+
   carregandoHistorico.value = true
   historicoErro.value = ''
   const inicio = limpar ? 0 : historicoOffset.value
-  const { data, error } = await supabase
-    .from('opinioes')
-    .select('id, nome, opiniao, criado_em')
-    .eq('visivel_publicamente', true)
-    .order('criado_em', { ascending: false })
-    .range(inicio, inicio + 49)
-  if (error) {
-    historicoErro.value = error.code === '42501'
-      ? 'A consulta pública ainda precisa ser liberada no Supabase. Aplique a migração de histórico público.'
-      : 'Não foi possível carregar as opiniões agora. Tente novamente.'
-  } else {
+
+  try {
+    const { data, error } = await supabase
+      .from('opinioes')
+      .select('id, nome, opiniao, criado_em')
+      .eq('visivel_publicamente', true)
+      .order('criado_em', { ascending: false })
+      .range(inicio, inicio + 49)
+
+    if (error) {
+      historicoErro.value = mensagemErroOpiniao(error)
+      return
+    }
+
     const resultados = data || []
     opinioesAnteriores.value = limpar ? resultados : [...opinioesAnteriores.value, ...resultados]
     historicoOffset.value = inicio + resultados.length
     historicoTemMais.value = resultados.length === 50
+  } catch (error) {
+    historicoErro.value = mensagemErroOpiniao(error)
+  } finally {
+    carregandoHistorico.value = false
   }
-  carregandoHistorico.value = false
 }
 
 async function alternarHistorico() {
@@ -186,21 +235,23 @@ async function enviarOpiniao() {
   }
 
   enviandoOpiniao.value = true
-  const { error } = await supabase.from('opinioes').insert({ nome, opiniao, visivel_publicamente: true })
-  if (error) {
-    erroOpiniao.value = ['42P01', 'PGRST205'].includes(error.code)
-      ? 'A tabela de opiniões ainda precisa ser criada no Supabase. Execute o SQL indicado no arquivo de migração.'
-      : error.code === '42501'
-        ? 'O Supabase bloqueou o envio. Verifique a política de inserção da tabela de opiniões.'
-        : 'Não foi possível registrar sua opinião agora. Tente novamente.'
-  } else {
+  try {
+    const { error } = await supabase.from('opinioes').insert({ nome, opiniao, visivel_publicamente: true })
+    if (error) {
+      erroOpiniao.value = mensagemErroOpiniao(error)
+      return
+    }
+
     retornoOpiniao.value = `Obrigado, ${nome}! Sua opinião foi registrada.`
     nomeOpiniao.value = ''
     textoOpiniao.value = ''
     aceitaPublicarOpiniao.value = false
     if (historicoVisivel.value) await carregarHistorico(true)
+  } catch (error) {
+    erroOpiniao.value = mensagemErroOpiniao(error)
+  } finally {
+    enviandoOpiniao.value = false
   }
-  enviandoOpiniao.value = false
 }
 function navegar(pagina) {
   if (pagina === 'chat') {
@@ -558,8 +609,21 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <aside class="ciclo-lunar-agricola">
+          <div class="ciclo-lunar-texto">
+            <span class="sobretitulo">TRADIÇÃO E OBSERVAÇÃO</span>
+            <h3>O ciclo da Lua também pode entrar no diário de campo</h3>
+            <p>O ciclo lunar dura cerca de 29,5 dias. Em calendários tradicionais, a Lua crescente costuma ser associada ao plantio de culturas de parte aérea, e a minguante, às raízes. Essa relação é um saber cultural para observar, não uma recomendação agronômica comprovada.</p>
+            <p>Pesquisas sobre luz lunar e plantas continuam em andamento; os resultados ainda não justificam usar a fase da Lua para prever uma boa safra. Clima, solo e janela local seguem essenciais.</p>
+            <div class="fontes-lunares"><a href="https://www.mdpi.com/2073-4395/10/7/955" target="_blank" rel="noopener noreferrer">Revisão científica sobre Lua e agricultura ↗</a><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11963477/" target="_blank" rel="noopener noreferrer">Estudo experimental sobre luz lunar ↗</a></div>
+          </div>
+          <div class="ciclo-lunar-fases" aria-label="Fases principais do ciclo lunar">
+            <span><i>🌑</i><small>Nova</small></span><b aria-hidden="true">→</b><span><i>🌓</i><small>Crescente</small></span><b aria-hidden="true">→</b><span><i>🌕</i><small>Cheia</small></span><b aria-hidden="true">→</b><span><i>🌗</i><small>Minguante</small></span>
+          </div>
+        </aside>
+
         <div class="linha-tempo painel-regioes">
-          <div class="linha-tempo-titulo"><div><span class="sobretitulo">BRASIL · CINCO REGIÕES</span><h3>Um ano no campo</h3></div><span class="contador-regiao">{{ String(regiaoAtiva + 1).padStart(2, '0') }} / {{ String(regioesAgricolas.length).padStart(2, '0') }}</span></div>
+          <div class="linha-tempo-titulo"><div><span class="sobretitulo">BRASIL · CALENDÁRIO ZARC</span><h3>Janelas de plantio por região</h3></div><span class="contador-regiao">{{ String(regiaoAtiva + 1).padStart(2, '0') }} / {{ String(regioesAgricolas.length).padStart(2, '0') }}</span></div>
           <nav class="botoes-regiao" aria-label="Escolha uma região agrícola">
             <button v-for="(regiao, indice) in regioesAgricolas" :key="regiao.id" type="button" :class="{ ativo: regiaoAtiva === indice }" :aria-pressed="regiaoAtiva === indice" @click="selecionarRegiao(indice)">{{ regiao.nome }}</button>
           </nav>
@@ -569,22 +633,32 @@ onUnmounted(() => {
               <article v-for="(regiao, indice) in regioesAgricolas" :id="`regiao-${regiao.id}`" :key="regiao.id" :data-regiao-indice="indice" class="cartao-regiao" :aria-label="`Região ${regiao.nome}`">
                 <div class="cartao-regiao-topo"><div><span class="sobretitulo">REGIÃO {{ regiao.nome.toLocaleUpperCase('pt-BR') }}</span><h4>{{ regiao.nome }}</h4><p>{{ regiao.estados }}</p></div><span class="icone-regiao" aria-hidden="true">{{ ['☀️', '🌵', '🌱', '☕', '🌾'][indice] }}</span></div>
                 <p class="resumo-regiao">{{ regiao.resumo }}</p>
-                <div class="tempo-meses meses-regiao"><span v-for="mes in mesesAgricolas" :key="mes">{{ mes }}</span></div>
+                <div class="culturas-destaque"><strong>Principais cultivos da região</strong><span v-for="cultura in regiao.destaques" :key="cultura">{{ cultura }}</span></div>
+                <p class="rotulo-calendario">Cultivos de destaque e janelas de semeadura/implantação</p>
+                <div class="tempo-meses meses-regiao"><span v-for="(mes, indiceMes) in mesesAgricolas" :key="mes"><span class="mes-abreviado">{{ mes }}</span><span class="mes-numero">{{ String(indiceMes + 1).padStart(2, '0') }}</span></span></div>
                 <div v-for="cultura in regiao.culturas" :key="cultura.nome" class="tempo-linha linha-regional">
-                  <div class="tempo-cultura"><span>{{ cultura.icone }}</span><div><strong>{{ cultura.nome }}</strong></div></div>
+                  <div class="tempo-cultura cultura-icone"><span role="img" :aria-label="cultura.detalhe || cultura.nome" :title="cultura.detalhe || cultura.nome">{{ cultura.icone }}</span></div>
                   <div class="tempo-trilho">
-                    <span v-if="cultura.fim < cultura.inicio" class="tempo-faixa" :class="cultura.cor" :style="{ gridColumn: `${cultura.inicio + 1} / 13` }"></span>
-                    <span class="tempo-faixa" :class="cultura.cor" :style="{ gridColumn: `${cultura.fim < cultura.inicio ? 1 : cultura.inicio + 1} / ${cultura.fim + 1}` }"></span>
+                    <span v-for="(intervalo, indiceFaixa) in intervalosDeMeses(cultura.meses)" :key="indiceFaixa" class="tempo-faixa" :class="cultura.cor" :style="{ gridColumn: `${intervalo.inicio} / ${intervalo.fim + 1}` }"></span>
+                    <span v-if="cultura.semPeriodo" class="zarc-sem-periodo">sem janela localizada para este município</span>
                   </div>
                 </div>
-                <p class="tempo-nota">Faixas ilustrativas para conversa e aprendizado; não são recomendação de plantio.</p>
+                <div class="legenda-culturas" aria-label="Legenda de culturas">
+                  <span v-for="cultura in regiao.culturas" :key="cultura.nome"><i aria-hidden="true">{{ cultura.icone }}</i><b class="legenda-amostra" :class="cultura.cor" aria-hidden="true"></b><span><strong>{{ cultura.nome }}</strong><br>{{ cultura.detalhe }}<small>Município líder: {{ cultura.municipio }} · PAM 2024</small></span></span>
+                </div>
+                <p class="tempo-nota">A duração ou o ciclo aparece na legenda de cada cultivo quando há informação compatível. Algumas culturas variam conforme o grupo e a cultivar indicados no ZARC.</p>
               </article>
             </div>
             <button type="button" class="seta-regiao" aria-label="Próxima região" :disabled="regiaoAtiva === regioesAgricolas.length - 1" @click="selecionarRegiao(regiaoAtiva + 1)">→</button>
           </div>
           <div class="indicadores-regiao" aria-label="Posição no carrossel"><button v-for="(regiao, indice) in regioesAgricolas" :key="regiao.id" type="button" :class="{ ativo: regiaoAtiva === indice }" :aria-label="`Ir para região ${regiao.nome}`" :aria-current="regiaoAtiva === indice ? 'step' : undefined" @click="selecionarRegiao(indice)"></button></div>
-          <p class="tempo-nota nota-zarc">As faixas mostram tendências gerais e podem variar muito por estado e município. Consulte a safra vigente, cultura, solo e cultivar no calendário oficial.</p>
+          <p class="tempo-nota nota-zarc">As faixas do ZARC mostram os meses com ao menos uma combinação de solo e grupo de cultivar com risco de 20% no município líder. Café arábica usa a tabela perene do ZARC; o conilon mostra a época técnica de implantação no período chuvoso (Incaper). Para tabaco Virgínia em Canguçu, a faixa representa o calendário Foniagro de transplante de mudas no Centro-Sul do RS, não uma janela ZARC. Os municípios líderes foram definidos pela produção da PAM 2024; outros municípios e condições podem ter períodos diferentes.</p>
+          <a class="link-zarc" href="https://dados.agricultura.gov.br/dataset/6d3d141c-885e-41a4-ab7f-dc8ff323b96f" target="_blank" rel="noopener noreferrer">Fonte: Tábua de Risco ZARC · dados abertos <span>↗</span></a>
           <a class="link-zarc" href="https://www.gov.br/agricultura/pt-br/assuntos/riscos-seguro/programa-nacional-de-zoneamento-agricola-de-risco-climatico/painel-de-indicacao-de-riscos-1" target="_blank" rel="noopener noreferrer">Consultar as janelas oficiais no ZARC <span>↗</span></a>
+          <a class="link-zarc" href="https://sidra.ibge.gov.br/tabela/5457" target="_blank" rel="noopener noreferrer">PAM 2024 · quantidade produzida por município · SIDRA 5457 <span>↗</span></a>
+          <a class="link-zarc" href="https://biblioteca.incaper.es.gov.br/digital/bitstream/item/701/1/livro2007cafeconilon9.pdf" target="_blank" rel="noopener noreferrer">Incaper · Café Conilon: época de plantio no Espírito Santo <span>↗</span></a>
+          <a class="link-zarc" href="https://revistacultivar.com/index.php/news/Southern-Brazil-begins-planting-tobacco-for-the-2026-crop." target="_blank" rel="noopener noreferrer">Calendário Foniagro 2026/27 · transplante de tabaco Virgínia <span>↗</span></a>
+          <a class="link-zarc" href="https://agenciadenoticias.ibge.gov.br/media/com_mediaibge/arquivos/86bd2f37f9fffb7f3941e1c74351f469.pdf" target="_blank" rel="noopener noreferrer">Referência dos cultivos de destaque: IBGE · PAM 2024 <span>↗</span></a>
         </div>
 
         <div class="agricultura-final"><span>🌙</span><p><strong>Uma boa pergunta para observar:</strong> em qual fase estava a Lua quando começou o plantio na sua comunidade? Compartilhe suas experiências no chat e compare os saberes tradicionais com as informações científicas.</p><button class="botao-principal" @click="navegar('chat')">Conversar no chat <span>→</span></button></div>
@@ -663,3 +737,6 @@ onUnmounted(() => {
     </footer>
   </div>
 </template>
+
+
+
