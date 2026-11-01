@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { computed, ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import Chat from './components/Chat.vue'
 import { supabase, supabaseConfigured } from './lib/supabase'
 
@@ -42,20 +42,129 @@ const iluminacao = computed(() => {
 })
 
 const mesesAgricolas = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-const calendarioAgricola = [
-  { nome: 'Arroz irrigado', detalhe: 'MS · implantação no período indicado para o sistema', icone: '🌾', inicio: 8, fim: 11, cor: 'faixa-verde' },
-  { nome: 'Milho · 1ª safra', detalhe: 'MS · início das chuvas', icone: '🌽', inicio: 9, fim: 11, cor: 'faixa-dourada' },
-  { nome: 'Milho · safrinha', detalhe: 'Centro-Oeste · após a cultura principal', icone: '🌽', inicio: 1, fim: 3, cor: 'faixa-lilas' },
-  { nome: 'Café · mudas', detalhe: 'Plantio com o começo das chuvas', icone: '☕', inicio: 11, fim: 12, cor: 'faixa-cafe' },
-  { nome: 'Arroz de terras altas', detalhe: 'Centro-Oeste · janela varia por município', icone: '🌾', inicio: 10, fim: 12, cor: 'faixa-azul' }
+const regioesAgricolas = [
+  { id: 'norte', nome: 'Norte', estados: 'AC · AP · AM · PA · RO · RR · TO', resumo: 'Calendários diversos entre áreas de chuva mais prolongada e sistemas de transição.', culturas: [
+    { nome: 'Soja', icone: '🫘', inicio: 9, fim: 11, cor: 'faixa-verde' },
+    { nome: 'Milho', icone: '🌽', inicio: 0, fim: 3, cor: 'faixa-dourada' },
+    { nome: 'Mandioca', icone: '🌱', inicio: 0, fim: 3, cor: 'faixa-azul' }
+  ] },
+  { id: 'nordeste', nome: 'Nordeste', estados: 'AL · BA · CE · MA · PB · PE · PI · RN · SE', resumo: 'O regime de chuvas varia bastante do litoral ao semiárido; o calendário acompanha cada zona.', culturas: [
+    { nome: 'Feijão-caupi', icone: '🫘', inicio: 0, fim: 4, cor: 'faixa-verde' },
+    { nome: 'Milho', icone: '🌽', inicio: 0, fim: 4, cor: 'faixa-dourada' },
+    { nome: 'Sorgo', icone: '🌾', inicio: 2, fim: 5, cor: 'faixa-lilas' }
+  ] },
+  { id: 'centro-oeste', nome: 'Centro-Oeste', estados: 'DF · GO · MS · MT', resumo: 'Em muitas áreas, a estação chuvosa organiza a safra de verão e a sucessão de culturas.', culturas: [
+    { nome: 'Soja', icone: '🫘', inicio: 8, fim: 11, cor: 'faixa-verde' },
+    { nome: 'Milho · segunda safra', icone: '🌽', inicio: 0, fim: 3, cor: 'faixa-dourada' },
+    { nome: 'Algodão', icone: '☁️', inicio: 11, fim: 12, cor: 'faixa-cafe' }
+  ] },
+  { id: 'sudeste', nome: 'Sudeste', estados: 'ES · MG · RJ · SP', resumo: 'Chuva, altitude e sistemas produtivos criam calendários diferentes até dentro de um mesmo estado.', culturas: [
+    { nome: 'Milho · verão', icone: '🌽', inicio: 8, fim: 11, cor: 'faixa-dourada' },
+    { nome: 'Café · implantação', icone: '☕', inicio: 9, fim: 3, cor: 'faixa-cafe' },
+    { nome: 'Feijão', icone: '🫘', inicio: 0, fim: 3, cor: 'faixa-verde' }
+  ] },
+  { id: 'sul', nome: 'Sul', estados: 'PR · RS · SC', resumo: 'Safras de verão e culturas de inverno se alternam conforme clima, solo e planejamento local.', culturas: [
+    { nome: 'Soja', icone: '🫘', inicio: 8, fim: 11, cor: 'faixa-verde' },
+    { nome: 'Milho · verão', icone: '🌽', inicio: 7, fim: 10, cor: 'faixa-dourada' },
+    { nome: 'Trigo', icone: '🌾', inicio: 4, fim: 7, cor: 'faixa-lilas' }
+  ] }
 ]
+const regiaoAtiva = ref(0)
+const carrosselRegioes = ref(null)
+function selecionarRegiao(indice) {
+  const destino = Math.max(0, Math.min(regioesAgricolas.length - 1, indice))
+  regiaoAtiva.value = destino
+  const faixa = carrosselRegioes.value
+  const cartao = faixa?.querySelector(`[data-regiao-indice="${destino}"]`)
+  if (faixa && cartao) faixa.scrollTo({ left: cartao.offsetLeft - faixa.offsetLeft, behavior: 'smooth' })
+}
+function atualizarRegiaoVisivel() {
+  const faixa = carrosselRegioes.value
+  if (!faixa) return
+  const centro = faixa.scrollLeft + faixa.clientWidth / 2
+  let maisProxima = 0
+  let distancia = Infinity
+  faixa.querySelectorAll('[data-regiao-indice]').forEach((cartao, indice) => {
+    const centroCartao = cartao.offsetLeft + cartao.offsetWidth / 2
+    const atual = Math.abs(centroCartao - centro)
+    if (atual < distancia) { distancia = atual; maisProxima = indice }
+  })
+  regiaoAtiva.value = maisProxima
+}
 const paginaAtiva = ref('principal')
 const chatRef = ref(null)
+const paginaAnteriorChat = ref('principal')
 const nomeOpiniao = ref('')
 const textoOpiniao = ref('')
 const enviandoOpiniao = ref(false)
 const retornoOpiniao = ref('')
 const erroOpiniao = ref('')
+const aceitaPublicarOpiniao = ref(false)
+const historicoVisivel = ref(false)
+const opinioesAnteriores = ref([])
+const carregandoHistorico = ref(false)
+const historicoErro = ref('')
+const historicoOffset = ref(0)
+const historicoTemMais = ref(true)
+const visitantesOnline = ref(0)
+const contagemVisitantesConectada = ref(false)
+let canalVisitantes = null
+
+function iniciarContagemVisitantes() {
+  if (!supabaseConfigured || !supabase) return
+  const idSessao = globalThis.crypto?.randomUUID?.() || `sessao-${Date.now()}-${Math.random().toString(36).slice(2)}`
+  canalVisitantes = supabase.channel('lua-hoje-visitantes', { config: { presence: { key: idSessao } } })
+    .on('presence', { event: 'sync' }, () => {
+      visitantesOnline.value = Object.keys(canalVisitantes?.presenceState() || {}).length
+      contagemVisitantesConectada.value = true
+    })
+    .subscribe(estado => {
+      if (estado === 'SUBSCRIBED') {
+        contagemVisitantesConectada.value = true
+        void canalVisitantes.track({ ativo: true })
+      } else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(estado)) {
+        visitantesOnline.value = 0
+        contagemVisitantesConectada.value = false
+      }
+    })
+}
+
+async function carregarHistorico(limpar = false) {
+  if (!supabaseConfigured || !supabase) {
+    historicoErro.value = 'A conexão com o Supabase ainda não está configurada.'
+    return
+  }
+  if (carregandoHistorico.value || (!historicoTemMais.value && !limpar)) return
+  carregandoHistorico.value = true
+  historicoErro.value = ''
+  const inicio = limpar ? 0 : historicoOffset.value
+  const { data, error } = await supabase
+    .from('opinioes')
+    .select('id, nome, opiniao, criado_em')
+    .eq('visivel_publicamente', true)
+    .order('criado_em', { ascending: false })
+    .range(inicio, inicio + 49)
+  if (error) {
+    historicoErro.value = error.code === '42501'
+      ? 'A consulta pública ainda precisa ser liberada no Supabase. Aplique a migração de histórico público.'
+      : 'Não foi possível carregar as opiniões agora. Tente novamente.'
+  } else {
+    const resultados = data || []
+    opinioesAnteriores.value = limpar ? resultados : [...opinioesAnteriores.value, ...resultados]
+    historicoOffset.value = inicio + resultados.length
+    historicoTemMais.value = resultados.length === 50
+  }
+  carregandoHistorico.value = false
+}
+
+async function alternarHistorico() {
+  historicoVisivel.value = !historicoVisivel.value
+  if (historicoVisivel.value && !opinioesAnteriores.value.length) await carregarHistorico(true)
+}
+
+function formatarDataOpiniao(data) {
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(data))
+}
 
 async function enviarOpiniao() {
   const nome = nomeOpiniao.value.trim()
@@ -77,7 +186,7 @@ async function enviarOpiniao() {
   }
 
   enviandoOpiniao.value = true
-  const { error } = await supabase.from('opinioes').insert({ nome, opiniao })
+  const { error } = await supabase.from('opinioes').insert({ nome, opiniao, visivel_publicamente: true })
   if (error) {
     erroOpiniao.value = ['42P01', 'PGRST205'].includes(error.code)
       ? 'A tabela de opiniões ainda precisa ser criada no Supabase. Execute o SQL indicado no arquivo de migração.'
@@ -88,15 +197,25 @@ async function enviarOpiniao() {
     retornoOpiniao.value = `Obrigado, ${nome}! Sua opinião foi registrada.`
     nomeOpiniao.value = ''
     textoOpiniao.value = ''
+    aceitaPublicarOpiniao.value = false
+    if (historicoVisivel.value) await carregarHistorico(true)
   }
   enviandoOpiniao.value = false
 }
 function navegar(pagina) {
   if (pagina === 'chat') {
+    if (paginaAtiva.value !== 'chat') paginaAnteriorChat.value = paginaAtiva.value
+    paginaAtiva.value = 'chat'
     chatRef.value?.abrirChat()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
     return
   }
   paginaAtiva.value = pagina
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
+function voltarAoPopupDoChat() {
+  paginaAtiva.value = paginaAnteriorChat.value || 'principal'
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -164,7 +283,7 @@ function desenhar(event) {
   if (Math.hypot(x - 130, y - 130) > 110) return
 
   ctx.beginPath()
-  ctx.arc(x, y, 9.9, 0, Math.PI * 2)
+  ctx.arc(x, y, 11.88, 0, Math.PI * 2)
   ctx.fillStyle = '#f4edcf'
   ctx.fill()
 }
@@ -248,6 +367,11 @@ watch(paginaAtiva, async pagina => {
 
 onMounted(() => {
   prepararLua()
+  iniciarContagemVisitantes()
+})
+
+onUnmounted(() => {
+  if (canalVisitantes && supabase) void supabase.removeChannel(canalVisitantes)
 })
 
 </script>
@@ -265,8 +389,9 @@ onMounted(() => {
         <a href="#fases" :class="{ ativo: paginaAtiva === 'fases' }" :aria-current="paginaAtiva === 'fases' ? 'page' : undefined" @click.prevent="navegar('fases')">Fases da Lua</a>
         <a href="#observacao" :class="{ ativo: paginaAtiva === 'observacao' }" :aria-current="paginaAtiva === 'observacao' ? 'page' : undefined" @click.prevent="navegar('observacao')">Desenhe a Lua</a>
         <a href="#agricultura" :class="{ ativo: paginaAtiva === 'agricultura' }" :aria-current="paginaAtiva === 'agricultura' ? 'page' : undefined" @click.prevent="navegar('agricultura')">Lua e agricultura</a>
+        <a href="#chat" :class="{ ativo: paginaAtiva === 'chat' }" :aria-current="paginaAtiva === 'chat' ? 'page' : undefined" @click.prevent="navegar('chat')">Chat lunar</a>
         <a href="#opiniao" :class="{ ativo: paginaAtiva === 'opiniao' }" :aria-current="paginaAtiva === 'opiniao' ? 'page' : undefined" @click.prevent="navegar('opiniao')">Deixe sua opinião</a>
-        <a href="#chat" @click.prevent="navegar('chat')">Chat lunar</a>
+        <a href="#dedicatoria" :class="{ ativo: paginaAtiva === 'dedicatoria' }" :aria-current="paginaAtiva === 'dedicatoria' ? 'page' : undefined" @click.prevent="navegar('dedicatoria')">Dedicatória</a>
       </nav>
     </header>
 
@@ -427,26 +552,59 @@ onMounted(() => {
           <div class="agricultura-ilustracao" aria-hidden="true"><span>🌱</span><span class="agricultura-lua">☾</span><i>✦</i></div>
           <div class="agricultura-texto">
             <span class="sobretitulo">UM CALENDÁRIO VIVO</span>
-            <h3>O tempo de plantar começa no solo</h3>
-            <p>Na região de Mato Grosso do Sul e do Centro-Oeste, a chegada das chuvas costuma orientar o início de várias culturas. Mesmo assim, a janela adequada muda conforme município, tipo de solo, cultivar e sistema de produção.</p>
-            <p class="aviso-agricola"><strong>E a Lua?</strong> Plantar em determinada fase lunar é uma prática cultural interessante para investigar. Ela não substitui recomendações agronômicas: clima, água e manejo são os fatores centrais para planejar a lavoura.</p>
+            <h3>Cultivos e estações pelo Brasil</h3>
+            <p>As épocas de plantio variam entre regiões e também entre estados, municípios, tipos de solo e cultivares. Explore alguns exemplos sazonais das cinco regiões brasileiras.</p>
+            <p class="aviso-agricola"><strong>E a Lua?</strong> Fases lunares podem inspirar observação de saberes tradicionais; clima, água e manejo continuam sendo fatores centrais no planejamento agrícola.</p>
           </div>
         </div>
 
-        <div class="linha-tempo">
-          <div class="linha-tempo-titulo"><div><span class="sobretitulo">REFERÊNCIA SAZONAL</span><h3>Um ano no campo</h3></div><p>Janelas gerais e educativas para o Centro-Oeste</p></div>
-          <div class="tempo-meses"><span v-for="mes in mesesAgricolas" :key="mes">{{ mes }}</span></div>
-          <div v-for="cultura in calendarioAgricola" :key="cultura.nome" class="tempo-linha">
-            <div class="tempo-cultura"><span>{{ cultura.icone }}</span><div><strong>{{ cultura.nome }}</strong><small>{{ cultura.detalhe }}</small></div></div>
-            <div class="tempo-trilho"><span class="tempo-faixa" :class="cultura.cor" :style="{ gridColumn: `${cultura.inicio} / ${cultura.fim + 1}` }"></span></div>
+        <div class="linha-tempo painel-regioes">
+          <div class="linha-tempo-titulo"><div><span class="sobretitulo">BRASIL · CINCO REGIÕES</span><h3>Um ano no campo</h3></div><span class="contador-regiao">{{ String(regiaoAtiva + 1).padStart(2, '0') }} / {{ String(regioesAgricolas.length).padStart(2, '0') }}</span></div>
+          <nav class="botoes-regiao" aria-label="Escolha uma região agrícola">
+            <button v-for="(regiao, indice) in regioesAgricolas" :key="regiao.id" type="button" :class="{ ativo: regiaoAtiva === indice }" :aria-pressed="regiaoAtiva === indice" @click="selecionarRegiao(indice)">{{ regiao.nome }}</button>
+          </nav>
+          <div class="carrossel-regioes-controles">
+            <button type="button" class="seta-regiao" aria-label="Região anterior" :disabled="regiaoAtiva === 0" @click="selecionarRegiao(regiaoAtiva - 1)">←</button>
+            <div ref="carrosselRegioes" class="carrossel-regioes" aria-label="Calendários agrícolas por região" @scroll.passive="atualizarRegiaoVisivel">
+              <article v-for="(regiao, indice) in regioesAgricolas" :id="`regiao-${regiao.id}`" :key="regiao.id" :data-regiao-indice="indice" class="cartao-regiao" :aria-label="`Região ${regiao.nome}`">
+                <div class="cartao-regiao-topo"><div><span class="sobretitulo">REGIÃO {{ regiao.nome.toLocaleUpperCase('pt-BR') }}</span><h4>{{ regiao.nome }}</h4><p>{{ regiao.estados }}</p></div><span class="icone-regiao" aria-hidden="true">{{ ['☀️', '🌵', '🌱', '☕', '🌾'][indice] }}</span></div>
+                <p class="resumo-regiao">{{ regiao.resumo }}</p>
+                <div class="tempo-meses meses-regiao"><span v-for="mes in mesesAgricolas" :key="mes">{{ mes }}</span></div>
+                <div v-for="cultura in regiao.culturas" :key="cultura.nome" class="tempo-linha linha-regional">
+                  <div class="tempo-cultura"><span>{{ cultura.icone }}</span><div><strong>{{ cultura.nome }}</strong></div></div>
+                  <div class="tempo-trilho">
+                    <span v-if="cultura.fim < cultura.inicio" class="tempo-faixa" :class="cultura.cor" :style="{ gridColumn: `${cultura.inicio + 1} / 13` }"></span>
+                    <span class="tempo-faixa" :class="cultura.cor" :style="{ gridColumn: `${cultura.fim < cultura.inicio ? 1 : cultura.inicio + 1} / ${cultura.fim + 1}` }"></span>
+                  </div>
+                </div>
+                <p class="tempo-nota">Faixas ilustrativas para conversa e aprendizado; não são recomendação de plantio.</p>
+              </article>
+            </div>
+            <button type="button" class="seta-regiao" aria-label="Próxima região" :disabled="regiaoAtiva === regioesAgricolas.length - 1" @click="selecionarRegiao(regiaoAtiva + 1)">→</button>
           </div>
-          <p class="tempo-nota">As faixas mostram períodos sazonais aproximados, não datas de recomendação para uma propriedade. Para decidir o plantio, consulte o ZARC vigente para o município, cultura, solo e cultivar.</p>
+          <div class="indicadores-regiao" aria-label="Posição no carrossel"><button v-for="(regiao, indice) in regioesAgricolas" :key="regiao.id" type="button" :class="{ ativo: regiaoAtiva === indice }" :aria-label="`Ir para região ${regiao.nome}`" :aria-current="regiaoAtiva === indice ? 'step' : undefined" @click="selecionarRegiao(indice)"></button></div>
+          <p class="tempo-nota nota-zarc">As faixas mostram tendências gerais e podem variar muito por estado e município. Consulte a safra vigente, cultura, solo e cultivar no calendário oficial.</p>
           <a class="link-zarc" href="https://www.gov.br/agricultura/pt-br/assuntos/riscos-seguro/programa-nacional-de-zoneamento-agricola-de-risco-climatico/painel-de-indicacao-de-riscos-1" target="_blank" rel="noopener noreferrer">Consultar as janelas oficiais no ZARC <span>↗</span></a>
         </div>
 
         <div class="agricultura-final"><span>🌙</span><p><strong>Uma boa pergunta para observar:</strong> em qual fase estava a Lua quando começou o plantio na sua comunidade? Compartilhe suas experiências no chat e compare os saberes tradicionais com as informações científicas.</p><button class="botao-principal" @click="navegar('chat')">Conversar no chat <span>→</span></button></div>
       </section>
-      <section id="opiniao" v-else class="opiniao">
+      <section id="dedicatoria" v-else-if="paginaAtiva === 'dedicatoria'" class="dedicatoria">
+        <div class="dedicatoria-cosmos" aria-hidden="true"><span class="dedicatoria-orbita orbita-um"></span><span class="dedicatoria-orbita orbita-dois"></span><span class="dedicatoria-lua">☾</span><i class="dedicatoria-estrela estrela-a">✦</i><i class="dedicatoria-estrela estrela-b">✧</i><i class="dedicatoria-estrela estrela-c">✦</i><i class="dedicatoria-estrela estrela-d">·</i></div>
+        <article class="dedicatoria-quadro">
+          <span class="sobretitulo">UM OLHAR QUE VIROU PROJETO</span>
+          <h2>Para minha mãe</h2>
+          <span class="dedicatoria-divisor" aria-hidden="true">✦ · ☾ · ✦</span>
+          <figure class="dedicatoria-retrato"><img src="/dedicatoria-constelacao-transparente.png" alt="Silhueta de uma mãe beijando o filho, formada por estrelas e linhas de constelação" /></figure>
+          <p class="dedicatoria-citacao">“Filho, vem ver a Lua, como está linda!”</p>
+          <p>Mãe, foi assim, no encanto simples de um chamado, que este projeto encontrou sua primeira inspiração. Em cada vez que você me convidou a olhar para o céu, ensinou que a beleza do universo fica ainda maior quando é compartilhada.</p>
+          <p>Esta Lua, estas estrelas e cada descoberta sobre o nosso pequeno sistema solar guardam um pouco daquele instante: duas pessoas olhando para o mesmo céu e encontrando nele motivo para se aproximar, imaginar e aprender.</p>
+          <p class="dedicatoria-assinatura">Com amor e gratidão,<br /><strong>seu filho, Wellington</strong></p>
+          <span class="dedicatoria-rodape">Sob o mesmo céu, em todas as fases. ☾</span>
+        </article>
+        <p class="dedicatoria-nota">Uma homenagem a quem me ensinou a parar por um instante e olhar para cima.</p>
+      </section>
+      <section id="opiniao" v-else-if="paginaAtiva === 'opiniao'" class="opiniao">
         <div class="opiniao-intro">
           <span class="sobretitulo">SOBRE O PROJETO</span>
           <h2>LuaHoje</h2>
@@ -463,26 +621,45 @@ onMounted(() => {
             <input id="nome-opiniao" v-model="nomeOpiniao" type="text" maxlength="80" autocomplete="name" placeholder="Digite seu nome" required />
             <label for="texto-opiniao">Sua opinião</label>
             <textarea id="texto-opiniao" v-model="textoOpiniao" maxlength="1500" rows="6" placeholder="Escreva aqui sua opinião" required></textarea>
-            <small class="opiniao-privacidade">Seu nome e sua opinião serão registrados para contribuir com o projeto.</small>
-            <button class="botao-principal" type="submit" :disabled="enviandoOpiniao || !nomeOpiniao.trim() || !textoOpiniao.trim()">
+            <label class="opiniao-consentimento"><input v-model="aceitaPublicarOpiniao" type="checkbox" required /><span>Concordo que meu nome e minha opinião apareçam no histórico público do LuaHoje.</span></label>
+            <button class="botao-principal" type="submit" :disabled="enviandoOpiniao || !aceitaPublicarOpiniao || !nomeOpiniao.trim() || !textoOpiniao.trim()">
               {{ enviandoOpiniao ? 'Enviando…' : 'Enviar opinião' }} <span>→</span>
             </button>
           </form>
           <p v-if="retornoOpiniao" class="opiniao-sucesso" role="status">{{ retornoOpiniao }}</p>
           <p v-if="erroOpiniao" class="chat-erro" role="alert">{{ erroOpiniao }}</p>
         </div>
+        <div class="opiniao-historico">
+          <div class="opiniao-historico-topo">
+            <div><span class="sobretitulo">VOZES DA COMUNIDADE</span><h3>Histórico de opiniões</h3><p>As contribuições ajudam a registrar como o projeto é recebido e o que pode melhorar.</p></div>
+            <button class="botao-historico" type="button" :aria-expanded="historicoVisivel" @click="alternarHistorico">{{ historicoVisivel ? 'Ocultar histórico' : 'Consultar opiniões' }}</button>
+          </div>
+          <p v-if="historicoErro" class="chat-erro" role="alert">{{ historicoErro }}</p>
+          <div v-if="historicoVisivel" class="opiniao-lista" aria-live="polite">
+            <p v-if="carregandoHistorico && !opinioesAnteriores.length" class="opiniao-lista-vazia">Carregando opiniões…</p>
+            <p v-else-if="!opinioesAnteriores.length" class="opiniao-lista-vazia">Ainda não há opiniões registradas.</p>
+            <article v-for="item in opinioesAnteriores" :key="item.id" class="opiniao-item">
+              <div><strong>{{ item.nome }}</strong><time :datetime="item.criado_em">{{ formatarDataOpiniao(item.criado_em) }}</time></div>
+              <p>{{ item.opiniao }}</p>
+            </article>
+            <button v-if="historicoTemMais && opinioesAnteriores.length" class="botao-historico carregar-mais" type="button" :disabled="carregandoHistorico" @click="carregarHistorico()">{{ carregandoHistorico ? 'Carregando…' : 'Carregar mais opiniões' }}</button>
+          </div>
+        </div>
       </section>
       </Transition>
+      <Chat ref="chatRef" :expandido="paginaAtiva === 'chat'" @voltar-ao-popup="voltarAoPopupDoChat" />
     </main>
-
-    <Chat ref="chatRef" />
 
     <footer>
       <a class="logo" href="#inicio"><span class="logo-icon">☾</span>
         <span>lua<span class="logo-destaque">hoje</span></span>
       </a>
       <p>Conhecimento, observação e conexão com a natureza.</p>
-      <span>Projeto acadêmico · UFMS Digital</span>
+      <div class="visitas-online" role="status" aria-live="polite">
+        <span class="visitas-ponto" :class="{ conectado: contagemVisitantesConectada }" aria-hidden="true"></span>
+        <span>{{ contagemVisitantesConectada ? `${visitantesOnline} ${visitantesOnline === 1 ? 'pessoa' : 'pessoas'} online agora` : 'Contagem temporariamente indisponível' }}</span>
+      </div>
+      <span>Projeto Integrador - UFMS</span>
     </footer>
   </div>
 </template>

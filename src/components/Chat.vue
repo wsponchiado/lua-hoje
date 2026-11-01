@@ -1,8 +1,20 @@
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { supabase, supabaseConfigured } from '../lib/supabase'
 
+const props = defineProps({ expandido: { type: Boolean, default: false } })
+const emit = defineEmits(['voltar-ao-popup'])
 const aberto = ref(false)
+watch(() => props.expandido, (expandido, anterior) => {
+  if (anterior && !expandido) {
+    aberto.value = false
+    mostrandoPessoas.value = false
+  }
+})
+const naoLidas = ref(0)
+const mostrandoPessoas = ref(false)
+const pessoas = ref([])
+const digitando = ref([])
 const apelidoEntrada = ref('')
 const mensagemEntrada = ref('')
 const usuario = ref(null)
@@ -14,16 +26,37 @@ const erro = ref('')
 const status = ref('')
 const listaRef = ref(null)
 let canal = null
+const timersDigitacao = new Map()
+let ultimaNotificacaoDigitacao = 0
 let intervalo = null
 let authSubscription = null
 let sessaoDesde = null
 let atualizandoMensagens = false
 let versaoSessao = 0
 
-const podeEntrar = computed(() => apelidoEntrada.value.trim().length >= 2)
+const podeEntrar = computed(() => apelidoEntrada.value.trim().length >= 2 && apelidoEntrada.value.trim().length <= 24)
+const textoDigitando = computed(() => {
+  const nomes = digitando.value.filter(pessoa => pessoa.id !== usuario.value?.id).map(pessoa => pessoa.apelido)
+  if (!nomes.length) return ''
+  if (nomes.length === 1) return `${nomes[0]} está digitando…`
+  if (nomes.length === 2) return `${nomes[0]} e ${nomes[1]} estão digitando…`
+  return `${nomes[0]}, ${nomes[1]} e mais ${nomes.length - 2} ${nomes.length === 3 ? 'pessoa' : 'pessoas'} estão digitando…`
+})
 
-function abrirChat() { aberto.value = true }
-function fecharChat() { aberto.value = false }
+const apelidosSorteio = ['Luna', 'Marte', 'Vênus', 'Júpiter', 'Saturno', 'Mercúrio', 'Netuno', 'Urano', 'Estrela Polar', 'Cometa Halley']
+function sortearApelido() {
+  const disponiveis = apelidosSorteio.filter(nome => nome !== apelidoEntrada.value)
+  apelidoEntrada.value = disponiveis[Math.floor(Math.random() * disponiveis.length)]
+}
+function abrirChat() { aberto.value = true; naoLidas.value = 0; mostrandoPessoas.value = false }
+function minimizarChat() {
+  if (props.expandido) {
+    emit('voltar-ao-popup')
+    return
+  }
+  aberto.value = false
+  mostrandoPessoas.value = false
+}
 defineExpose({ abrirChat })
 
 function mensagemErro(error) {
@@ -64,10 +97,16 @@ async function carregarMensagens() {
     }
     if (versaoAtual !== versaoSessao) return
     const nomes = new Map(perfis.map(perfil => [perfil.id, perfil.apelido]))
-    mensagens.value = (data || []).map(item => ({
+    const novasMensagens = (data || []).map(item => ({
       ...item,
       apelido: nomes.get(item.usuario_id) || 'Visitante lunar'
     })).reverse()
+    const idsAnteriores = new Set(mensagens.value.map(item => item.id))
+    if (aberto.value) naoLidas.value = 0
+    else if (mensagens.value.length) {
+      naoLidas.value += novasMensagens.filter(item => !idsAnteriores.has(item.id) && item.usuario_id !== usuario.value?.id).length
+    }
+    mensagens.value = novasMensagens
     erro.value = ''
     requestAnimationFrame(() => {
       if (listaRef.value) listaRef.value.scrollTop = listaRef.value.scrollHeight
@@ -81,13 +120,31 @@ function iniciarAtualizacoes() {
   if (!usuario.value) return
 
   canal = supabase
-    .channel(`lua-hoje-mensagens-${usuario.value.id}`)
+    .channel('lua-hoje-sala', { config: { presence: { key: usuario.value.id } } })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'mensagens' }, () => {
       void carregarMensagens()
+    })
+    .on('presence', { event: 'sync' }, () => {
+      const estado = canal?.presenceState() || {}
+      const lista = Object.values(estado).flat().map(item => ({ id: item.id, apelido: item.apelido })).filter(item => item.id)
+      pessoas.value = [...new Map(lista.map(item => [item.id, item])).values()]
+    })
+    .on('presence', { event: 'join' }, ({ newPresences }) => atualizarPresenca(newPresences, true))
+    .on('presence', { event: 'leave' }, ({ leftPresences }) => atualizarPresenca(leftPresences, false))
+    .on('broadcast', { event: 'digitando' }, ({ payload }) => {
+      if (!payload?.id || payload.id === usuario.value?.id) return
+      const pessoa = { id: payload.id, apelido: payload.apelido }
+      digitando.value = [...digitando.value.filter(item => item.id !== pessoa.id), pessoa]
+      clearTimeout(timersDigitacao.get(pessoa.id))
+      timersDigitacao.set(pessoa.id, setTimeout(() => {
+        digitando.value = digitando.value.filter(item => item.id !== pessoa.id)
+        timersDigitacao.delete(pessoa.id)
+      }, 3500))
     })
     .subscribe((estado) => {
       if (estado === 'SUBSCRIBED') {
         status.value = 'Atualização em tempo real ativa'
+        void canal.track({ id: usuario.value.id, apelido: apelidoAtual.value })
       } else if (estado === 'CHANNEL_ERROR' || estado === 'TIMED_OUT' || estado === 'CLOSED') {
         status.value = 'Atualização periódica ativa'
       }
@@ -99,6 +156,25 @@ function iniciarAtualizacoes() {
   intervalo = setInterval(() => {
     if (usuario.value) void carregarMensagens()
   }, 3000)
+}
+
+function atualizarPresenca(registros, entrou) {
+  const estado = canal?.presenceState() || {}
+  const lista = Object.values(estado).flat().map(item => ({ id: item.id, apelido: item.apelido })).filter(item => item.id)
+  pessoas.value = [...new Map(lista.map(item => [item.id, item])).values()]
+  if (!entrou) {
+    const ids = new Set((registros || []).map(item => item.id))
+    digitando.value = digitando.value.filter(item => !ids.has(item.id))
+    ids.forEach(id => { clearTimeout(timersDigitacao.get(id)); timersDigitacao.delete(id) })
+  }
+}
+
+function notificarDigitacao() {
+  if (!canal || !usuario.value || !mensagemEntrada.value.trim()) return
+  const agora = Date.now()
+  if (agora - ultimaNotificacaoDigitacao < 1000) return
+  ultimaNotificacaoDigitacao = agora
+  void canal.send({ type: 'broadcast', event: 'digitando', payload: { id: usuario.value.id, apelido: apelidoAtual.value } })
 }
 
 async function registrarEntrada(id, apelido) {
@@ -237,6 +313,10 @@ async function sairDoChat() {
   sessaoDesde = null
   if (canal) await supabase.removeChannel(canal)
   canal = null
+  pessoas.value = []
+  digitando.value = []
+  timersDigitacao.forEach(timer => clearTimeout(timer))
+  timersDigitacao.clear()
   if (intervalo) clearInterval(intervalo)
   intervalo = null
   await supabase.auth.signOut({ scope: 'local' })
@@ -280,21 +360,23 @@ onMounted(async () => {
 onUnmounted(() => {
   if (intervalo) clearInterval(intervalo)
   if (canal && supabase) supabase.removeChannel(canal)
+  timersDigitacao.forEach(timer => clearTimeout(timer))
   authSubscription?.unsubscribe()
 })
 </script>
 
 <template>
-  <div class="chat-widget">
+  <div class="chat-widget" :class="{ 'chat-widget-expandido': expandido }">
     <button v-if="!aberto" class="chat-launcher" type="button" aria-label="Abrir chat lunar" title="Abrir chat lunar" @click="abrirChat">
       <span class="chat-launcher-moon" aria-hidden="true">☾</span>
+      <span v-if="naoLidas" class="chat-nao-lidas" :aria-label="`${naoLidas} mensagens novas`">{{ naoLidas > 99 ? '99+' : naoLidas }}</span>
     </button>
 
-    <section v-else id="chat" class="chat-lunar" role="dialog" aria-label="Chat lunar">
+    <section v-else id="chat" class="chat-lunar" :class="{ 'chat-expandido': expandido }" :role="expandido ? undefined : 'dialog'" aria-label="Chat lunar">
       <div class="chat-card">
         <header class="chat-window-top">
           <div><span class="chat-window-moon">☾</span><div><strong>Chat lunar</strong><small>Uma conversa sob a mesma Lua</small></div></div>
-          <button class="chat-close" type="button" aria-label="Fechar chat" @click="fecharChat">×</button>
+          <button class="chat-close" type="button" :aria-label="expandido ? 'Voltar ao site e manter o chat aberto' : 'Minimizar chat'" :title="expandido ? 'Voltar ao site e manter o chat aberto' : 'Minimizar chat'" @click="minimizarChat">×</button>
         </header>
 
         <div v-if="!supabaseConfigured" class="chat-aviso-config">
@@ -309,7 +391,8 @@ onUnmounted(() => {
           <p>Sem e-mail e sem senha. Seu apelido aparecerá junto às mensagens.</p>
           <form @submit.prevent="entrarNoChat">
             <label for="apelido-chat">Apelido</label>
-            <input id="apelido-chat" v-model="apelidoEntrada" maxlength="24" minlength="2" autocomplete="nickname" placeholder="Ex.: Observador da Lua" required />
+            <div class="chat-apelido-linha"><input id="apelido-chat" v-model="apelidoEntrada" maxlength="24" minlength="2" autocomplete="nickname" placeholder="Ex.: Observador da Lua" required /><button type="button" class="chat-sortear" @click="sortearApelido">Sortear</button></div>
+            <small class="chat-apelido-limite">2 a 24 caracteres</small>
             <button class="botao-principal" type="submit" :disabled="!podeEntrar || carregando">
               {{ carregando ? 'Conectando…' : 'Entrar no chat' }} <span>→</span>
             </button>
@@ -319,8 +402,18 @@ onUnmounted(() => {
         <div v-else class="chat-sala">
           <div class="chat-cabecalho">
             <div><span class="chat-online-ponto"></span><strong>{{ apelidoAtual }}</strong><small>{{ status }}</small></div>
+            <button class="chat-pessoas-botao" type="button" aria-label="Ver pessoas no chat" :aria-expanded="mostrandoPessoas" @click="mostrandoPessoas = !mostrandoPessoas">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM20 8v6m3-3h-6" /></svg>
+              <span>{{ pessoas.length }}</span>
+            </button>
             <button class="chat-sair" type="button" @click="sairDoChat">Sair</button>
           </div>
+          <div v-if="mostrandoPessoas" class="chat-pessoas-lista">
+            <strong>No chat agora</strong>
+            <p v-for="pessoa in pessoas" :key="pessoa.id"><span class="chat-online-ponto"></span>{{ pessoa.apelido }}<small v-if="pessoa.id === usuario.id">Você</small></p>
+            <p v-if="!pessoas.length">Ninguém conectado no momento.</p>
+          </div>
+          <div v-if="textoDigitando" class="chat-digitando" aria-live="polite">{{ textoDigitando }}</div>
           <div ref="listaRef" class="chat-mensagens" aria-live="polite" aria-label="Mensagens do chat">
             <p v-if="!mensagens.length" class="chat-vazio">O céu está quieto por enquanto. Comece a conversa 🌙</p>
             <article v-for="mensagem in mensagens" :key="mensagem.id" class="chat-mensagem" :class="{ 'chat-mensagem-propria': mensagem.usuario_id === usuario.id, 'chat-aviso-sala': ehAvisoDeSala(mensagem) }">
@@ -329,7 +422,7 @@ onUnmounted(() => {
             </article>
           </div>
           <form class="chat-compositor" @submit.prevent="enviarMensagem">
-            <input v-model="mensagemEntrada" maxlength="500" aria-label="Sua mensagem" placeholder="Escreva sua mensagem…" autocomplete="off" />
+            <input v-model="mensagemEntrada" maxlength="500" aria-label="Sua mensagem" placeholder="Escreva sua mensagem…" autocomplete="off" @input="notificarDigitacao" />
             <button class="botao-principal" type="submit" :disabled="!mensagemEntrada.trim() || enviando">Enviar</button>
           </form>
           <p class="chat-limite">Até 500 caracteres por mensagem.</p>
