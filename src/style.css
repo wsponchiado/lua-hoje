@@ -1,0 +1,851 @@
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap');
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #f3f1fa;
+  background: #090d1b;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 75% 5%, rgba(67, 52, 119, 0.17), transparent 40%),
+    #090d1b;
+}
+
+button, a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app {
+  width: 100%;
+  overflow: hidden;
+}
+
+.topbar {
+  height: 78px;
+  padding: 0 8%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: clamp(24px, 4vw, 58px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  background: rgba(9,13,27,.9);
+}
+
+.logo {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 23px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.logo-icon {
+  font-size: 32px;
+  color: #b5a1ff;
+}
+
+.logo-destaque {
+  color: #b5a1ff;
+}
+
+.menu {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(14px, 2vw, 30px);
+  align-items: center;
+}
+
+.menu a {
+  color: #a7a5b8;
+  font-size: 13px;
+  transition: color .2s;
+}
+
+.menu a:hover,
+.menu a.ativo {
+  color: #c5b5ff;
+}
+
+.data-topo {
+  color: #aaa7bc;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.hero {
+  min-height: 510px;
+  padding: 75px 12%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  background:
+    radial-gradient(ellipse at 75% 50%, rgba(91, 65, 157, .18), transparent 38%);
+}
+
+.hero-texto {
+  max-width: 570px;
+}
+
+.etiqueta,
+.sobretitulo {
+  color: #b5a1ff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 25px;
+}
+
+.ponto {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a98cff;
+  box-shadow: 0 0 12px #a98cff;
+}
+
+.hero h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(38px, 5vw, 58px);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+
+.hero h1 span {
+  color: #b6a2ff;
+}
+
+.hero-texto > p {
+  max-width: 480px;
+  margin-top: 22px;
+  color: #aaa9bd;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.botao-principal {
+  margin-top: 30px;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: 7px;
+  background: #9b83eb;
+  color: #101023;
+  font-size: 13px;
+  font-weight: 700;
+  transition: .2s;
+}
+
+.botao-principal:hover {
+  background: #b7a5ff;
+  transform: translateY(-2px);
+}
+
+.botao-principal span {
+  margin-left: 12px;
+}
+
+.lua-destaque {
+  width: 310px;
+  height: 310px;
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lua-emoji {
+  z-index: 2;
+  font-size: 155px;
+  filter: drop-shadow(0 0 28px rgba(205,188,255,.3));
+}
+
+.orbita {
+  position: absolute;
+  border: 1px solid rgba(181,161,255,.16);
+  border-radius: 50%;
+}
+
+.orbita-externa {
+  width: 300px;
+  height: 300px;
+}
+
+.orbita-interna {
+  width: 235px;
+  height: 235px;
+  border-style: dashed;
+}
+
+.estrela {
+  position: absolute;
+  color: #c5b4ff;
+}
+
+.estrela-1 { top: 22px; left: 48px; font-size: 20px; }
+.estrela-2 { top: 65px; right: 18px; font-size: 25px; }
+.estrela-3 { bottom: 45px; left: 20px; font-size: 30px; }
+.estrela-4 { bottom: 12px; right: 55px; font-size: 17px; }
+
+.resumo-lunar {
+  padding: 55px 12%;
+  background: rgba(255,255,255,.025);
+  border-top: 1px solid rgba(255,255,255,.06);
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.resumo-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  margin-bottom: 27px;
+}
+
+.resumo-titulo h2,
+.titulo-secao h2,
+.agricultura h2 {
+  margin-top: 8px;
+  font-family: 'Playfair Display', serif;
+  font-size: 29px;
+}
+
+.data-resumo {
+  color: #aaa7bc;
+  font-size: 12px;
+}
+
+.dados-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 17px;
+}
+
+.dado-card {
+  min-height: 155px;
+  padding: 25px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 10px;
+  background: #11172a;
+}
+
+.fase-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.dado-icone {
+  font-size: 44px;
+}
+
+.dado-label {
+  display: block;
+  color: #aaa7bc;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+}
+
+.dado-card h3 {
+  margin-top: 10px;
+  font-size: 24px;
+}
+
+.dado-card h3 small {
+  color: #aaa7bc;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.dado-card p {
+  margin-top: 10px;
+  color: #9998ad;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.barra-fundo {
+  height: 5px;
+  margin-top: 14px;
+  border-radius: 10px;
+  background: #29243d;
+  overflow: hidden;
+}
+
+.barra-progresso {
+  height: 100%;
+  border-radius: 10px;
+  background: #ad98ff;
+}
+
+.nota-dados {
+  margin-top: 17px;
+  color: #817f95;
+  font-size: 11px;
+}
+
+.secao-fases {
+  padding: 85px 12%;
+}
+
+.titulo-secao {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.titulo-secao p {
+  margin-top: 12px;
+  color: #a7a5b8;
+  font-size: 13px;
+}
+
+.fases-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 900px) {
+  .fases-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .fases-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fase-item {
+  padding: 27px 18px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  background: #11172a;
+  transition: transform .2s, border-color .2s;
+}
+
+.fase-item:hover {
+  transform: translateY(-5px);
+  border-color: rgba(181,161,255,.5);
+}
+
+.fase-emoji {
+  font-size: 47px;
+  display: inline-block;
+  transform: scaleX(-1);
+}
+
+.fase-item h3 {
+  margin-top: 17px;
+  font-size: 14px;
+}
+
+.fase-item p {
+  margin-top: 10px;
+  color: #a7a5b8;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.agricultura {
+  padding: 76px max(7%, calc((100% - 1080px) / 2));
+  display: flex;
+  flex-direction: column;
+  gap: 34px;
+  background: radial-gradient(ellipse at 8% 0%, rgba(91,65,157,.15), transparent 42%), linear-gradient(145deg, #11172a, #17172d);
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.agricultura-cabecalho { max-width: 720px; }
+.agricultura-cabecalho h2 { margin: 9px 0 12px; font: 600 34px 'Playfair Display', serif; }
+.agricultura-cabecalho p, .agricultura-texto p { color: #b3b0c2; font-size: 13px; line-height: 1.9; }
+.agricultura-destaque { display: grid; grid-template-columns: .75fr 1.25fr; gap: 36px; align-items: center; }
+.agricultura-ilustracao { min-height: 220px; position: relative; display:flex; align-items:center; justify-content:center; gap:15px; border:1px solid rgba(181,161,255,.16); border-radius:16px; background:radial-gradient(circle, rgba(122,103,175,.2), transparent 70%); }
+.agricultura-ilustracao span { font-size:70px; }
+.agricultura-ilustracao .agricultura-lua { color:#c5b4ff; font-size:75px; }
+.agricultura-ilustracao i { position:absolute; top:28%; right:22%; color:#e6d6a5; font-style:normal; }
+.agricultura-texto h3, .linha-tempo-titulo h3 { margin:8px 0 12px; font:600 23px 'Playfair Display',serif; }
+.agricultura-texto .aviso-agricola { margin-top:14px; padding:14px; border-left:3px solid #a991f5; border-radius:3px; background:rgba(169,145,245,.08); font-size:11px; }
+.linha-tempo { padding:26px 28px; border:1px solid rgba(255,255,255,.09); border-radius:14px; background:rgba(9,13,27,.48); }
+.linha-tempo-titulo { display:flex; justify-content:space-between; align-items:end; gap:18px; margin-bottom:22px; }
+.linha-tempo-titulo p { color:#aaa7bc; font-size:11px; }
+.tempo-meses, .tempo-trilho { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:5px; }
+.tempo-meses { margin:0 0 10px 190px; color:#88869b; font-size:9px; text-align:center; }
+.tempo-linha { display:grid; grid-template-columns:175px 1fr; gap:15px; align-items:center; min-height:46px; border-top:1px solid rgba(255,255,255,.05); }
+.tempo-cultura { display:flex; align-items:center; gap:9px; }
+.tempo-cultura > span { font-size:20px; }
+.tempo-cultura strong, .tempo-cultura small { display:block; }
+.tempo-cultura strong { font-size:11px; }
+.tempo-cultura small { margin-top:3px; color:#88869b; font-size:9px; line-height:1.4; }
+.tempo-trilho { min-height:13px; align-items:center; }
+.tempo-faixa { height:9px; grid-row:1; border-radius:10px; box-shadow:0 0 12px currentColor; opacity:.9; }
+.faixa-verde { color:#82c9a0; background:#82c9a0; }.faixa-dourada { color:#e1bd68; background:#e1bd68; }.faixa-lilas { color:#ad91f2; background:#ad91f2; }.faixa-cafe { color:#c98764; background:#c98764; }.faixa-azul { color:#73b8d0; background:#73b8d0; }
+.tempo-nota { margin-top:18px; color:#aaa7bc; font-size:10px; line-height:1.7; }
+.link-zarc { display:inline-flex; gap:8px; margin-top:12px; color:#c5b4ff; font-size:11px; }
+.link-zarc:hover { color:#e1d8ff; }
+.agricultura-final { display:flex; align-items:center; gap:16px; padding:19px 22px; border:1px solid rgba(181,161,255,.15); border-radius:12px; background:rgba(169,145,245,.06); }
+.agricultura-final > span { font-size:28px; }
+.agricultura-final p { flex:1; color:#c5c1d2; font-size:11px; line-height:1.7; }
+.agricultura-final button { flex:none; }
+
+.agricultura-visual {
+  min-height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  border: 1px solid rgba(181,161,255,.16);
+  border-radius: 14px;
+  background: radial-gradient(circle, rgba(122,103,175,.19), transparent 70%);
+}
+
+.agricultura-visual span {
+  font-size: 80px;
+}
+
+.agricultura-visual .agricultura-lua {
+  font-size: 65px;
+}
+
+.agricultura-texto h2 {
+  margin-bottom: 18px;
+}
+
+.agricultura-texto > p {
+  color: #b3b0c2;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+.agricultura-texto .aviso-agricola {
+  margin-top: 17px;
+  padding: 14px;
+  border-left: 3px solid #a991f5;
+  border-radius: 3px;
+  background: rgba(169,145,245,.08);
+  font-size: 11px;
+}
+
+footer {
+  min-height: 100px;
+  padding: 25px 8%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+footer p,
+footer > span {
+  color: #89879c;
+  font-size: 11px;
+}
+
+@media (max-width: 850px) {
+  .topbar {
+    height: auto;
+    min-height: 78px;
+    padding: 12px 5%;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+  }
+
+  .menu {
+    flex: 0 0 100%;
+    order: 3;
+    justify-content: flex-start;
+    gap: 24px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+  .menu a { white-space: nowrap; font-size: 11px; }
+
+  .hero {
+    padding: 60px 7%;
+  }
+
+  .resumo-lunar,
+  .secao-fases,
+  .agricultura {
+    padding-left: 7%;
+    padding-right: 7%;
+  }
+
+  .dados-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .fase-card {
+    grid-column: span 2;
+  }
+
+  .agricultura {
+    gap: 30px;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    height: auto;
+    min-height: 75px;
+    padding: 15px 6%;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .topbar { gap: 12px; }
+
+  .logo { margin-right: 0; }
+
+  .menu {
+    flex: 0 0 100%;
+    order: 3;
+    width: 100%;
+    gap: 18px;
+    overflow-x: auto;
+  }
+
+  .menu a {
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .data-topo {
+    font-size: 10px;
+  }
+
+  .hero {
+    min-height: auto;
+    padding: 55px 7%;
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
+  }
+
+  .hero-texto > p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .lua-destaque {
+    width: 250px;
+    height: 250px;
+  }
+
+  .orbita-externa {
+    width: 240px;
+    height: 240px;
+  }
+
+  .orbita-interna {
+    width: 190px;
+    height: 190px;
+  }
+
+  .lua-emoji {
+    font-size: 125px;
+  }
+
+  .resumo-lunar,
+  .secao-fases,
+  .agricultura {
+    padding: 50px 7%;
+  }
+
+  .dados-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fase-card {
+    grid-column: auto;
+  }
+
+  .fases-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .agricultura-destaque {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .agricultura { gap: 26px; }
+  .tempo-meses { margin-left: 0; }
+  .tempo-linha { grid-template-columns: 130px 1fr; gap: 9px; }
+  .tempo-cultura small { font-size: 8px; }
+  .linha-tempo { padding: 20px 14px; }
+  .agricultura-final { flex-wrap: wrap; }
+  .agricultura-final button { margin-left: 42px; }
+
+  .agricultura-visual {
+    min-height: 180px;
+  }
+
+  .agricultura-visual span {
+    font-size: 65px;
+  }
+
+  footer {
+    padding: 25px 7%;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Área interativa de observação lunar */
+
+.observacao {
+  padding: 85px 12%;
+  background:
+    radial-gradient(ellipse at 50% 50%, rgba(91, 65, 157, .13), transparent 65%);
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.desenho-container {
+  max-width: 850px;
+  margin: 0 auto;
+  padding: 35px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 45px;
+  align-items: center;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  background: #11172a;
+}
+
+.area-desenho {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.lua-canvas {
+  width: 260px;
+  height: 260px;
+  max-width: 100%;
+  border-radius: 50%;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.instrucao-desenho {
+  color: #aaa7bc;
+  font-size: 11px;
+}
+
+.instrucao-desenho span {
+  color: #b5a1ff;
+}
+
+.controles-desenho h3 {
+  font-size: 19px;
+  margin-bottom: 12px;
+}
+
+.controles-desenho > p {
+  color: #aaa7bc;
+  font-size: 12px;
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+
+.botao-limpar {
+  display: block;
+  margin-top: 13px;
+  padding: 11px 18px;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 7px;
+  background: transparent;
+  color: #d3cee5;
+  font-size: 12px;
+}
+
+.botao-limpar:hover {
+  background: rgba(255,255,255,.08);
+}
+
+.resultado-desenho {
+  margin-top: 25px;
+  padding: 18px;
+  border: 1px solid rgba(181,161,255,.25);
+  border-radius: 9px;
+  background: rgba(169,145,245,.08);
+}
+
+.resultado-desenho h3 {
+  margin: 9px 0;
+  color: #c5b4ff;
+}
+
+.resultado-desenho p {
+  margin-top: 6px;
+  color: #d1cede;
+  font-size: 12px;
+}
+
+.resultado-desenho small {
+  display: block;
+  margin-top: 12px;
+  color: #9996ad;
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .observacao {
+    padding: 55px 7%;
+  }
+
+  .desenho-container {
+    grid-template-columns: 1fr;
+    padding: 25px 18px;
+    gap: 30px;
+  }
+
+  .lua-canvas {
+    width: 240px;
+    height: 240px;
+  }
+}
+
+/* Orientação lunar para o hemisfério sul */
+.lua-emoji,
+.dado-icone {
+  display: inline-block;
+  transform: scaleX(-1);
+}
+.chat-lunar {
+  padding: 85px 12%;
+  background: radial-gradient(ellipse at 50% 45%, rgba(91,65,157,.14), transparent 65%);
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+.chat-card {
+  max-width: 780px;
+  min-height: 310px;
+  margin: 0 auto;
+  padding: 28px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  background: #11172a;
+}
+.chat-entrada, .chat-aviso-config { max-width: 430px; margin: 10px auto; display: flex; flex-direction: column; align-items: stretch; }
+.chat-lua-icone { align-self: center; color: #b5a1ff; font-size: 38px; }
+.chat-entrada h3, .chat-aviso-config h3 { margin: 12px 0 6px; text-align: center; font-family: 'Playfair Display', serif; font-size: 22px; }
+.chat-entrada > p, .chat-aviso-config > p { margin-bottom: 22px; color: #aaa7bc; text-align: center; font-size: 12px; line-height: 1.7; }
+.chat-entrada label { margin-bottom: 7px; color: #c8c4d8; font-size: 12px; }
+.chat-entrada input, .chat-compositor input { min-width: 0; padding: 13px 14px; border: 1px solid rgba(255,255,255,.15); border-radius: 7px; outline: none; background: #0c1120; color: #f3f1fa; font: inherit; }
+.chat-entrada input:focus, .chat-compositor input:focus { border-color: #a991f5; }
+.chat-entrada .botao-principal { align-self: flex-start; }
+.chat-entrada .botao-principal:disabled, .chat-compositor button:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+.chat-aviso-config { justify-content: center; min-height: 245px; }
+.chat-aviso-config code { color: #d3c7ff; }
+.chat-cabecalho { display:flex; align-items:center; justify-content:space-between; padding-bottom:16px; border-bottom:1px solid rgba(255,255,255,.08); }
+.chat-cabecalho > div { display:grid; grid-template-columns:10px auto; gap:3px 9px; align-items:center; }
+.chat-cabecalho strong { font-size:13px; }
+.chat-cabecalho small { grid-column:2; color:#918ea5; font-size:10px; }
+.chat-online-ponto { width:8px; height:8px; border-radius:50%; background:#8bd6a4; box-shadow:0 0 9px #8bd6a4; }
+.chat-sair { padding:8px 12px; border:1px solid rgba(255,255,255,.16); border-radius:6px; background:transparent; color:#d3cee5; font:inherit; font-size:11px; cursor:pointer; }
+.chat-mensagens { height:310px; padding:18px 5px; display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+.chat-vazio { margin:auto; color:#918ea5; text-align:center; font-size:12px; }
+.chat-mensagem { max-width:78%; align-self:flex-start; padding:10px 13px; border:1px solid rgba(255,255,255,.08); border-radius:4px 12px 12px 12px; background:#171e34; overflow-wrap:anywhere; }
+.chat-mensagem-propria { align-self:flex-end; border-color:rgba(181,161,255,.25); border-radius:12px 4px 12px 12px; background:rgba(139,118,211,.18); }
+.chat-mensagem-meta { display:flex; gap:12px; align-items:center; color:#c5b4ff; font-size:10px; }
+.chat-mensagem-meta time { color:#89879c; font-size:9px; }
+.chat-mensagem > p { margin-top:5px; color:#eeeaf8; font-size:12px; line-height:1.6; white-space:pre-wrap; }
+.chat-compositor { display:flex; gap:10px; }
+.chat-compositor input { flex:1; }
+.chat-compositor .botao-principal { margin:0; padding:0 18px; }
+.chat-limite { margin-top:8px; color:#77758a; font-size:10px; text-align:right; }
+.chat-erro { margin-top:14px; padding:11px 13px; border:1px solid rgba(245,145,154,.25); border-radius:7px; background:rgba(151,48,63,.12); color:#ffb1b8; font-size:12px; line-height:1.6; }
+@media (max-width:700px) { .chat-lunar { padding:55px 7%; } .chat-card { padding:20px 15px; } .chat-mensagens { height:270px; } .chat-mensagem { max-width:90%; } }
+.chat-widget { position: relative; z-index: 50; }
+.chat-launcher { position:fixed; right:26px; bottom:22px; z-index:51; width:54px; height:54px; display:flex; align-items:center; justify-content:center; padding:0; border:1px solid rgba(255,255,255,.22); border-radius:50%; background:#9b83eb; color:#101023; box-shadow:0 10px 32px rgba(0,0,0,.35); cursor:pointer; transition:transform .2s, background .2s; }
+.chat-launcher:hover { transform:translateY(-2px); background:#b7a5ff; }
+.chat-launcher-moon { font-size:25px; line-height:1; }
+.chat-lunar { position:fixed; right:26px; bottom:82px; z-index:50; width:min(410px, calc(100vw - 28px)); padding:0; border:0; background:transparent; }
+.chat-card { width:100%; min-height:0; max-height:min(620px, calc(100dvh - 112px)); margin:0; padding:0 18px 16px; overflow:hidden; border:1px solid rgba(255,255,255,.13); border-radius:14px; background:#11172a; box-shadow:0 18px 55px rgba(0,0,0,.55); }
+.chat-window-top { min-height:57px; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,.08); }
+.chat-window-top > div { display:flex; align-items:center; gap:10px; }
+.chat-window-moon { color:#b5a1ff; font-size:26px; }
+.chat-window-top strong { display:block; font-size:13px; }
+.chat-window-top small { display:block; margin-top:3px; color:#918ea5; font-size:10px; }
+.chat-close { width:30px; height:30px; border:0; border-radius:50%; background:rgba(255,255,255,.08); color:#ded9ed; font-size:22px; line-height:1; cursor:pointer; }
+.chat-card .chat-entrada, .chat-card .chat-aviso-config { min-height:0; margin:0 auto; padding:12px 0 2px; }
+.chat-card .chat-entrada .chat-lua-icone, .chat-card .chat-aviso-config .chat-lua-icone { font-size:30px; }
+.chat-card .chat-entrada h3, .chat-card .chat-aviso-config h3 { margin-top:8px; font-size:19px; }
+.chat-card .chat-entrada > p, .chat-card .chat-aviso-config > p { margin-bottom:15px; }
+.chat-card .chat-entrada .botao-principal { margin-top:18px; }
+.chat-card .chat-mensagens { height:min(330px, 42vh); min-height:170px; }
+.chat-card .chat-erro { max-height:76px; overflow:auto; }
+@media (max-width:600px) { .chat-launcher { right:14px; bottom:14px; } .chat-lunar { right:10px; bottom:76px; width:calc(100vw - 20px); } .chat-card { max-height:calc(100dvh - 88px); padding-left:14px; padding-right:14px; } .chat-card .chat-mensagens { height:35vh; min-height:150px; } }
+
+.chat-entrada > form { display:flex; flex-direction:column; align-items:stretch; }
+.chat-entrada > form .botao-principal { align-self:flex-start; }
+.chat-sala { min-height:0; }
+/* Cabeçalho persistente e transição entre as três telas */
+.topbar { position:sticky; top:0; z-index:40; backdrop-filter:blur(16px); }
+.screen-enter-active, .screen-leave-active { transition:opacity .28s ease, transform .28s ease; }
+.screen-enter-from { opacity:0; transform:translateY(12px); }
+.screen-leave-to { opacity:0; transform:translateY(-8px); }
+.secao-fases { scroll-margin-top:96px; }
+@media (prefers-reduced-motion: reduce) {
+  .screen-enter-active, .screen-leave-active { transition:none; }
+}
+@media (max-width: 700px) {
+  .menu { flex-wrap:nowrap; }
+  .menu a { padding:7px 0; }
+}
+.chat-mensagem.chat-aviso-sala { align-self:center; max-width:94%; padding:5px 10px; border:0; border-radius:999px; background:rgba(181,161,255,.08); text-align:center; }
+.chat-mensagem.chat-aviso-sala > p { margin:0; color:#aaa7bc; font-size:10px; line-height:1.5; }
+.opiniao { max-width:1100px; min-height:calc(100vh - 180px); margin:0 auto; padding:70px 7%; display:grid; grid-template-columns:1fr 1.05fr; gap:38px; align-items:center; }
+.opiniao-intro, .opiniao-form-card { padding:32px; border:1px solid rgba(255,255,255,.09); border-radius:14px; background:#11172a; }
+.opiniao-intro h2, .opiniao-form-card h2 { margin-top:10px; font-family:'Playfair Display',serif; font-size:30px; }
+.opiniao-intro p, .opiniao-form-card > p { margin-top:16px; color:#b3b0c2; font-size:13px; line-height:1.9; }
+.opiniao-criador { display:block; margin-top:22px; color:#c5b4ff; font-size:12px; font-weight:600; }
+.opiniao-form { margin-top:22px; display:flex; flex-direction:column; align-items:stretch; }
+.opiniao-form label { margin:0 0 7px; color:#d3cee5; font-size:12px; font-weight:600; }
+.opiniao-form input, .opiniao-form textarea { width:100%; margin-bottom:17px; padding:12px 14px; border:1px solid rgba(255,255,255,.15); border-radius:7px; outline:none; background:#0c1120; color:#f3f1fa; font:inherit; font-size:13px; resize:vertical; }
+.opiniao-form input:focus, .opiniao-form textarea:focus { border-color:#a991f5; }
+.opiniao-form input::placeholder, .opiniao-form textarea::placeholder { color:#77758a; }
+.opiniao-privacidade { margin:-5px 0 2px; color:#918ea5; font-size:10px; line-height:1.5; }
+.opiniao-form .botao-principal { align-self:flex-start; }
+.opiniao-form .botao-principal:disabled { opacity:.55; cursor:not-allowed; transform:none; }
+.opiniao-sucesso { margin-top:16px; padding:12px 14px; border:1px solid rgba(139,214,164,.25); border-radius:7px; background:rgba(80,145,103,.12); color:#a9e5bb; font-size:12px; line-height:1.6; }
+@media (max-width:800px) { .opiniao { min-height:auto; grid-template-columns:1fr; gap:18px; padding:44px 7%; } .opiniao-intro, .opiniao-form-card { padding:24px 20px; } }
