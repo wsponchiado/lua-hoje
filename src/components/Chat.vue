@@ -237,16 +237,15 @@ async function entrarNoChat() {
   }
 
   if (perfil) {
-    if (perfil.apelido.toLocaleLowerCase('pt-BR') !== apelido.toLocaleLowerCase('pt-BR')) {
-      const { error: erroAtualizacao } = await supabase
-        .from('perfis')
-        .update({ apelido })
-        .eq('id', user.id)
-      if (erroAtualizacao) {
-        erro.value = mensagemErro(erroAtualizacao)
-        carregando.value = false
-        return
-      }
+    // O trigger registra o início desta sessão também quando o apelido não muda.
+    const { error: erroAtualizacao } = await supabase
+      .from('perfis')
+      .update({ apelido })
+      .eq('id', user.id)
+    if (erroAtualizacao) {
+      erro.value = mensagemErro(erroAtualizacao)
+      carregando.value = false
+      return
     }
   } else {
     const { error: erroCriacao } = await supabase
@@ -355,9 +354,18 @@ onMounted(async () => {
       .eq('id', data.session.user.id)
       .maybeSingle()
     if (perfil) {
-      const { data: entrada, error: erroEntrada } = await registrarEntrada(perfil.id, perfil.apelido)
-      if (erroEntrada) erro.value = mensagemErro(erroEntrada)
-      else await abrirSala(perfil.id, perfil.apelido, entrada.criado_em)
+      // Atualiza entrou_em no servidor antes de criar a mensagem de entrada.
+      const { error: erroReentrada } = await supabase
+        .from('perfis')
+        .update({ apelido: perfil.apelido })
+        .eq('id', perfil.id)
+      if (erroReentrada) {
+        erro.value = mensagemErro(erroReentrada)
+      } else {
+        const { data: entrada, error: erroEntrada } = await registrarEntrada(perfil.id, perfil.apelido)
+        if (erroEntrada) erro.value = mensagemErro(erroEntrada)
+        else await abrirSala(perfil.id, perfil.apelido, entrada.criado_em)
+      }
     }
   }
   const { data: listener } = supabase.auth.onAuthStateChange((_evento, sessao) => {

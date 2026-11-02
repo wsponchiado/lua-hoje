@@ -67,6 +67,7 @@ function atualizarRegiaoVisivel() {
 const paginaAtiva = ref('principal')
 const chatRef = ref(null)
 const paginaAnteriorChat = ref('principal')
+const paginasDisponiveis = new Set(['principal', 'fases', 'observacao', 'agricultura', 'chat', 'opiniao', 'dedicatoria'])
 const nomeOpiniao = ref('')
 const textoOpiniao = ref('')
 const enviandoOpiniao = ref(false)
@@ -197,21 +198,40 @@ async function enviarOpiniao() {
     enviandoOpiniao.value = false
   }
 }
+function lerPaginaDaUrl() {
+  const pagina = window.location.hash.slice(1)
+  return paginasDisponiveis.has(pagina) ? pagina : 'principal'
+}
+
+function sincronizarPaginaComUrl() {
+  const pagina = lerPaginaDaUrl()
+  if (paginaAtiva.value === 'chat' && pagina !== 'chat') {
+    paginaAnteriorChat.value = pagina
+  } else if (pagina === 'chat' && paginaAtiva.value !== 'chat') {
+    paginaAnteriorChat.value = paginaAtiva.value
+  }
+  paginaAtiva.value = pagina
+  if (pagina === 'chat') chatRef.value?.abrirChat()
+  window.scrollTo({ top: 0 })
+}
+
 function navegar(pagina) {
+  if (!paginasDisponiveis.has(pagina)) return
   if (pagina === 'chat') {
     if (paginaAtiva.value !== 'chat') paginaAnteriorChat.value = paginaAtiva.value
     paginaAtiva.value = 'chat'
+    if (window.location.hash !== '#chat') window.history.pushState({ pagina }, '', '#chat')
     chatRef.value?.abrirChat()
     window.scrollTo({ top: 0, behavior: 'smooth' })
     return
   }
   paginaAtiva.value = pagina
+  if (window.location.hash !== `#${pagina}`) window.history.pushState({ pagina }, '', `#${pagina}`)
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function voltarAoPopupDoChat() {
-  paginaAtiva.value = paginaAnteriorChat.value || 'principal'
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+  navegar(paginaAnteriorChat.value || 'principal')
 }
 
 
@@ -354,10 +374,14 @@ function identificarFase() {
 
 
 onMounted(() => {
+  paginaAtiva.value = lerPaginaDaUrl()
+  if (paginaAtiva.value === 'chat') chatRef.value?.abrirChat()
+  window.addEventListener('popstate', sincronizarPaginaComUrl)
   iniciarContagemVisitantes()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('popstate', sincronizarPaginaComUrl)
   if (canalVisitantes && supabase) void supabase.removeChannel(canalVisitantes)
 })
 

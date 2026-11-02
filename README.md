@@ -17,11 +17,11 @@ Use apenas a chave pública no frontend. Nunca coloque chaves `service_role` ou 
 3. Reinicie o servidor Vite depois de alterar variáveis `VITE_*`.
 4. Confirme que o login anônimo está habilitado e que as tabelas `perfis` e `mensagens` mantêm RLS e as políticas criadas para `authenticated` no SQL do projeto.
 
-O chat cria uma sessão anônima do Supabase, associa o apelido ao `auth.uid()` em `perfis` e limita mensagens a 500 caracteres. Cada entrada marca o início da sessão: a pessoa vê apenas mensagens enviadas desde que entrou. O Realtime atualiza a conversa imediatamente quando disponível, com consulta periódica de segurança a cada 3 segundos. Ao sair, a tela local é limpa; quando o último participante sai, o SQL remove o histórico da conversa encerrada.
+O chat cria uma sessão anônima do Supabase, associa o apelido ao `auth.uid()` em `perfis` e limita mensagens a 500 caracteres. O banco controla `perfis.entrou_em` e aplica RLS para que cada participante consulte apenas mensagens posteriores à própria entrada; o filtro do frontend continua sincronizado com essa regra. `mensagens` integra a publicação `supabase_realtime`, e a consulta periódica de segurança a cada 3 segundos permanece como alternativa de atualização. Ao sair, a tela local é limpa; quando o último participante sai, o SQL remove o histórico da conversa encerrada.
 
 ### Saída do chat e limpeza da conversa
 
-Execute o arquivo `supabase/migrations/20261101_chat_temporario.sql` no SQL Editor do Supabase. Ele atualiza `sair_do_chat()` para liberar o apelido e apagar o histórico quando a sala ficar sem participantes. Cada pessoa vê apenas mensagens enviadas desde sua própria entrada.
+Aplique as migrações do chat em ordem. Em bancos que já executaram `20261102_sair_do_chat_delete_seguro.sql`, aplique também `supabase/migrations/20261102_sessao_chat_rls_realtime.sql` para restringir a leitura ao período da sessão e habilitar atualizações Postgres Changes.
 
 ### Aba Deixe sua opinião
 
